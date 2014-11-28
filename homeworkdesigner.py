@@ -43,7 +43,7 @@ from collections import namedtuple
 from array import *
 import pango
 
-from simpleassociation import SimpleAssociation
+from simpleassociationtemplate import SimpleAssociationTemplate
 from findthedifferent import FindTheDifferent
 from searchthesame import SearchTheSame
 
@@ -53,6 +53,13 @@ class ModalWindowSelectExercise:
 	def __init__ (self, parent):
 		self.parent = parent
 		self.modalWindow = gtk.Window()
+		
+		self.frameWindowScrolled = gtk.Frame()
+		self.frameWindowScrolled.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color("black"))
+		
+		self.frameHBoxButton = gtk.Frame()
+		self.frameHBoxButton.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color("black"))
+		
 		
 		self.scrolledWindow = gtk.ScrolledWindow()
 		
@@ -80,8 +87,9 @@ class ModalWindowSelectExercise:
 			eventBox = gtk.EventBox()
 			eventBox.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color("gray"))
 		
-			eventBox.connect("enter-notify-event", self.enterNotifyEventBoxCallBack, exercisesTypes)
-			eventBox.connect("leave_notify_event", self.leaveNotifyEventBoxCallBack, exercisesTypes)
+			eventBox.connect("enter-notify-event", self.enterNotifyEventBoxCallBack)
+			eventBox.connect("leave_notify_event", self.leaveNotifyEventBoxCallBack)
+			eventBox.connect("button-press-event", self.exerciseTypeSelectedCallBack, exerciseType)
 			image = gtk.Image()
 			image.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(exerciseType['imagePath']).scale_simple(200, 200, 2))
 			label = gtk.Label(exerciseType['label'])
@@ -92,19 +100,20 @@ class ModalWindowSelectExercise:
 		
 		imageButtonIcon = gtk.Image()
 		imageButtonIcon.set_from_stock(gtk.STOCK_CANCEL, gtk.ICON_SIZE_MENU)	
-		
-		#imageButtonIcon =  self.parent.render_icon(gtk.STOCK_CANCEL, gtk.ICON_SIZE_MENU)
 		buttonOk = gtk.Button()
 		buttonOk.set_image(imageButtonIcon)
 		buttonOk.set_label("Cancelar")
-		buttonOk.connect ("clicked", self.goBackButtonCallBack)
+		buttonOk.connect ("clicked", self.cancelButtonCallBack)
 		buttonOk.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color("black"))
 		hBoxButton = gtk.HBox(True,0)
 		hBoxButton.pack_start(buttonOk, False,False	,0)
 		
 		self.scrolledWindow.add_with_viewport(self.vBoxExercises)
-		self.vBoxModalWindow.pack_start(self.scrolledWindow, True,True,0)
-		self.vBoxModalWindow.pack_start(hBoxButton, False,False,0)
+		self.frameWindowScrolled.add(self.scrolledWindow)
+		self.vBoxModalWindow.pack_start(self.frameWindowScrolled, True,True,0)
+		
+		self.frameHBoxButton.add(hBoxButton)
+		self.vBoxModalWindow.pack_start(self.frameHBoxButton, False,False,0)
 		
 		self.modalWindow.add(self.vBoxModalWindow)
 	
@@ -113,8 +122,15 @@ class ModalWindowSelectExercise:
 	def leaveNotifyEventBoxCallBack(self, eventBox, *args):
 		eventBox.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color("gray")) 
 		
-	def goBackButtonCallBack(self, button,*args):
+	def cancelButtonCallBack(self, button,*args):
 		self.modalWindow.destroy()
+		
+	def exerciseTypeSelectedCallBack(self, eventBox, *args):
+		#self.parent._logger.debug(args)
+		codeExerciseType = args[1]['code']
+		self.modalWindow.destroy()
+		self.parent.createNewExerciseType(codeExerciseType)
+		
 		
 	def show(self):
 		self.modalWindow.show_all ()
@@ -150,12 +166,6 @@ class HomeWorkDesigner(activity.Activity):
 		toolbar_box.toolbar.insert(title_entry, 1)
 		title_entry.show()
 
-	
-
-		'''share_button = ShareButton(self)
-		toolbar_box.toolbar.insert(share_button, -1)
-		share_button.show()'''
-
 		separator = gtk.SeparatorToolItem()
 		separator.props.draw = False
 		separator.set_expand(True)
@@ -171,12 +181,25 @@ class HomeWorkDesigner(activity.Activity):
 		self.buttonNext.set_tooltip(_('Siguiente'))
 		self.buttonNext.connect("clicked", self.nextButtonCallBack)
 		toolbar_box.toolbar.insert(self.buttonNext, 3)
+
+		toolbar_box.toolbar.insert_space(4)
+
 		
 		self.newButton = ToolButton('add')
 		self.newButton.set_tooltip(_('Nuevo Ejercicio'))
 		self.newButton.connect("clicked", self.newExerciseCallBack)
-		toolbar_box.toolbar.insert(self.newButton, 4)
+		toolbar_box.toolbar.insert(self.newButton, 5)
+	
+		self.deleteButton = ToolButton('edit-delete')
+		self.deleteButton.set_tooltip(_('Borrar Ejercicio'))
+		#self.newButton.connect("clicked", self.newExerciseCallBack)
+		toolbar_box.toolbar.insert(self.deleteButton, 6)
 		
+		self.exportButton = ToolButton('document-save')
+		self.exportButton.set_tooltip(_('Exportar Ejercicio'))
+		#self.newButton.connect("clicked", self.newExerciseCallBack)
+		toolbar_box.toolbar.insert(self.exportButton, 7)
+	
 		stop_button = StopButton(self)
 		toolbar_box.toolbar.insert(stop_button, -1)
 		stop_button.show()
@@ -184,19 +207,12 @@ class HomeWorkDesigner(activity.Activity):
 		self.set_toolbar_box(toolbar_box)
 		toolbar_box.show()
 
-		self.amountExercises = len(self.activity.exercises)
-		self.currentIndexExercise = -1
-		
-		self.nextButtonCallBack(None, None)
-
-
 		vBoxGeneral = gtk.VBox(False, 2)
 		self.set_canvas(vBoxGeneral)
 		self.show_all()
 		
 	
 	def exerciseCompletedCallBack(self):
-			
 			self.modalDoneWindow = ModalWindowDone(self)
 			self.modalDoneWindow.show()	
 	
@@ -222,13 +238,36 @@ class HomeWorkDesigner(activity.Activity):
 		self.currentIndexExercise = self.currentIndexExercise + 1
 		self.createNewWindowExercise()
 		
+	def getLogger(self):
+		return self._logger
 	
 	def backButtonCallBack(self, button, *args):
 		self.currentIndexExercise = self.currentIndexExercise - 1
 		self.createNewWindowExercise()
 	
+	def createNewExerciseType(self, codeExerciseType):
+		newExerciseTemplate = None
+		newWindowExerciseTemplate = None
+		if codeExerciseType == 1:
+			self._logger.debug("Inside : if codeExerciseType == 1")
+			newExerciseTemplate = SimpleAssociationTemplate()
+			newWindowExerciseTemplate = newExerciseTemplate.getWindow(self)
+			self._logger.debug("After : ewWindowExerciseTemplate = newExerciseTemplate.getWindow(self)")
+			
+		vBoxMain = self.get_children()[0]
+		if len(vBoxMain.get_children()) > 1 :
+			oldWindowExerciseTemplate = vBoxMain.get_children()[1]
+			vBoxMain.remove(oldWindowExerciseTemplate)
+		
+		self._logger.debug("After : if len(vBoxMain.get_children()) > 1")
+			
+		vBoxMain.pack_start(newWindowExerciseTemplate, True, True, 0)
+		self.show_all()	
+		self._logger.debug("After : self.show_all()")
+			
 	def createNewWindowExercise(self):
-		newExercise = None
+		
+		'''newExercise = None
 		newWindowExercise = None
 		if self.activity.exercises[self.currentIndexExercise].codeType == 1:
 			newExercise = SimpleAssociation()
@@ -248,7 +287,7 @@ class HomeWorkDesigner(activity.Activity):
 		vBoxMain.pack_start(newWindowExercise, True, True, 0)
 		
 		self.manageBackNextButtons()
-		self.show_all()
+		self.show_all()'''
 	
 	def read_file(self, tmp_file):
 		pass
