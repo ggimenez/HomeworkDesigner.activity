@@ -20,8 +20,9 @@ LETTERS_SCALE = [100, 100]
 
 class ModalWindowSelectItem:
 
-	def __init__ (self, parent):
+	def __init__ (self, parent, exerciseWindow):
 		self.parent = parent
+		self.exerciseWindow = exerciseWindow
 		self.modalWindow = gtk.Window()
 		
 		self.frameWindowScrolled = gtk.Frame()
@@ -49,7 +50,7 @@ class ModalWindowSelectItem:
 		self.hBoxItem =  gtk.HBox(True, 10)
 		
 		entry = gtk.Entry()
-		self.hBoxItem.pack_start(entry, False,False	,0)
+		self.hBoxItem.pack_start(entry, False,False,0)
 		
 		imagePlaceHolder = gtk.Image()
 		imagePlaceHolder.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file("./images/img_place_holder.gif").scale_simple(300, 200, 2))
@@ -82,7 +83,7 @@ class ModalWindowSelectItem:
 		buttonOk = gtk.Button()
 		buttonOk.set_image(buttonOkIcon)
 		buttonOk.set_label("Aceptar")
-		#buttonOk.connect ("clicked", self.cancelButtonCallBack)
+		buttonOk.connect ("clicked", self.okButtonCallBack)
 		buttonOk.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color("black"))
 		
 		
@@ -100,12 +101,16 @@ class ModalWindowSelectItem:
 		
 		self.modalWindow.add(self.vBoxModalWindow)
 	
+	def manageImageSelected(self):
+		self.parent.getLogger().debug("Inside to manageImageSelected")
+		self.exerciseWindow.modalWindowReturnImage(self.itemSelected)		
+	
 	def imageItemSelected(self, eventBox, *args):
 		chooser = ObjectChooser(parent=self.modalWindow, what_filter='Image')
 		result = chooser.run()
 		self.parent.getLogger().debug("chooser result :")
 		self.parent.getLogger().debug(result)
-		self.jobject = None
+		self.jobject = None		
 		self.path = None
 		if result == gtk.RESPONSE_ACCEPT:
 			self.jobject = chooser.get_selected_object()
@@ -113,23 +118,32 @@ class ModalWindowSelectItem:
 			'''self.parent.getLogger().debug(self.jobject)'''	
 			self.parent.getLogger().debug(self.path)
 			'''self.parent.getLogger().debug(self.jobject.get_metadata().keys())'''
-			'''self.parent.getLogger().debug(self.jobject.get_metadata().get('mime_type'))'''
-			
+			'''self.parent.getLogger().debug(self.jobject.get_metadata().get('mime_type'))'''			
 		if self.path != None:
 			imageSelected = gtk.Image()
 			imageSelected.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(self.path).scale_simple(300, 300, 2))
+			
+			imageSelectedCopy = gtk.Image()
+			imageSelectedCopy.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(self.path).scale_simple(IMAGES_SCALE[0], IMAGES_SCALE[1], 2))
+			
+   			self.itemSelected = imageSelectedCopy
+						
 			oldImage = eventBox.get_children()[0]
 			eventBox.remove(oldImage)
 			eventBox.add(imageSelected)
 			eventBox.show_all()
-			
+			self.itemHandler = self.manageImageSelected 
 		
 	def enterNotifyEventBoxCallBack(self, eventBox, *args):
 		eventBox.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color("orange"))
 	def leaveNotifyEventBoxCallBack(self, eventBox, *args):
 		eventBox.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color("gray")) 
-		
-	def cancelButtonCallBack(self, button,*args):
+	
+        def okButtonCallBack(self, eventBox, *args):
+		self.itemHandler()	
+		self.modalWindow.destroy()
+	
+        def cancelButtonCallBack(self, button,*args):
 		self.modalWindow.destroy()
 		
 	def exerciseTypeSelectedCallBack(self, eventBox, *args):
@@ -187,11 +201,19 @@ class SimpleAssociationTemplate():
 	
 	def itemSelectedCallBack(self, eventBox, *args):
 		self.mainWindows.getLogger().debug("Inside: itemSelectedCallBack")
-		#chooser = ObjectChooser(parent=self.mainWindows, what_filter='Image')
-		#result = chooser.run()
-		dialogInsertNewItem = ModalWindowSelectItem(self.mainWindows)
+		dialogInsertNewItem = ModalWindowSelectItem(self.mainWindows, self)
 		dialogInsertNewItem.show()
-	
+		self.currentEventBoxSelected = eventBox
+      		self.mainWindows.getLogger().debug("after of show() in itemSelectedCallBack")	
+
+        def modalWindowReturnImage(self, image):
+                self.mainWindows.getLogger().debug("Inside a modalWindowReturnImage")
+		self.mainWindows.getLogger().debug(image)
+		oldItem = self.currentEventBoxSelected.get_children()[0]
+		self.currentEventBoxSelected.remove(oldItem)
+ 		self.currentEventBoxSelected.add(image)
+		self.currentEventBoxSelected.show_all()
+
 	def addEventBoxToVBox(self, eventBox, vBox):
 		frameEventBox = gtk.Frame() 
 		frameEventBox.add(eventBox)

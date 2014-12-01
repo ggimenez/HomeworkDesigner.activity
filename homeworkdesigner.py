@@ -80,7 +80,10 @@ class ModalWindowSelectExercise:
 		
 		self.vBoxExercises =  gtk.VBox(True, 5)
 		
-		exercisesTypes = [{"code":1, "imagePath":"./images/code1.png", "label":"Asociacion Simple"},{"code":2, "imagePath":"./images/code2.png", "label":"Encuentra el Diferente"},{"code":3, "imagePath":"./images/code3.png", "label":"Busca los iguales"} ]
+		exercisesTypes = ( [{"code":1, "imagePath":"./images/code1.png", "label":"Asociacion Simple"},
+                                    {"code":2, "imagePath":"./images/code2.png", "label":"Encuentra el Diferente"},
+                                    {"code":3, "imagePath":"./images/code3.png", "label":"Busca los iguales"} ]
+                                 )
 		
 		for exerciseType in exercisesTypes:
 			hBox = gtk.HBox(True, 0)
