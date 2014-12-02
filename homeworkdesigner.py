@@ -212,14 +212,11 @@ class HomeWorkDesigner(activity.Activity):
 		self.set_toolbar_box(toolbar_box)
 		toolbar_box.show()
 
-		vBoxGeneral = gtk.VBox(False, 2)
-		self.set_canvas(vBoxGeneral)
+		self.vBoxMain = gtk.VBox(False, 2)
+		self.set_canvas(self.vBoxMain)
 		self.show_all()
-		
-	
-	def exerciseCompletedCallBack(self):
-			self.modalDoneWindow = ModalWindowDone(self)
-			self.modalDoneWindow.show()	
+
+			
 	
 	def manageBackNextButtons(self):
 		if self.currentIndexExercise == 0:
@@ -259,41 +256,16 @@ class HomeWorkDesigner(activity.Activity):
 			newWindowExerciseTemplate = newExerciseTemplate.getWindow(self)
 			self._logger.debug("After : ewWindowExerciseTemplate = newExerciseTemplate.getWindow(self)")
 			
-		vBoxMain = self.get_children()[0]
-		if len(vBoxMain.get_children()) > 1 :
-			oldWindowExerciseTemplate = vBoxMain.get_children()[1]
-			vBoxMain.remove(oldWindowExerciseTemplate)
+		vBoxMain = self.vBoxMain
+		allWindowsExercises = vBoxMain.get_children()
+                for windowExercise in allWindowsExercises:
+                        windowExercise.hide() 
 		
-		self._logger.debug("After : if len(vBoxMain.get_children()) > 1")
-			
-		vBoxMain.pack_start(newWindowExerciseTemplate, True, True, 0)
-		self.show_all()	
-		self._logger.debug("After : self.show_all()")
-			
-	def createNewWindowExercise(self):
-		
-		'''newExercise = None
-		newWindowExercise = None
-		if self.activity.exercises[self.currentIndexExercise].codeType == 1:
-			newExercise = SimpleAssociation()
-			newWindowExercise = newExercise.getWindow(self.activity.exercises[self.currentIndexExercise], self)
-		elif self.activity.exercises[self.currentIndexExercise].codeType == 2:
-			newExercise = FindTheDifferent()
-			newWindowExercise = newExercise.getWindow(self.activity.exercises[self.currentIndexExercise], self)
-		elif self.activity.exercises[self.currentIndexExercise].codeType == 3:
-			newExercise = SearchTheSame()
-			newWindowExercise = newExercise.getWindow(self.activity.exercises[self.currentIndexExercise], self)
-			
-		vBoxMain = self.get_children()[0]
-		if len(vBoxMain.get_children()) > 1 :
-			oldWindowExercise = vBoxMain.get_children()[1]
-			vBoxMain.remove(oldWindowExercise)
-			
-		vBoxMain.pack_start(newWindowExercise, True, True, 0)
-		
-		self.manageBackNextButtons()
-		self.show_all()'''
 	
+		vBoxMain.pack_start(newWindowExerciseTemplate, True, True, 0)
+		newWindowExerciseTemplate.show_all()
+		
+			
 	def read_file(self, tmp_file):
 		pass
 
