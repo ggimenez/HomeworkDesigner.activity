@@ -50,6 +50,11 @@ class ModalWindowSelectItem:
 		self.hBoxItem =  gtk.HBox(True, 10)
 		
 		entry = gtk.Entry()
+                eventBoxImageItem = gtk.EventBox()
+
+
+
+		entry.connect("changed", self.textEnterCallBack, eventBoxImageItem)
 		self.hBoxItem.pack_start(entry, False,False,0)
 		
 		imagePlaceHolder = gtk.Image()
@@ -61,8 +66,7 @@ class ModalWindowSelectItem:
 		frameEventBoxImageItem = gtk.Frame()
 		frameEventBoxImageItem.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color("orange"))
 		
-		eventBoxImageItem = gtk.EventBox()
-		eventBoxImageItem.connect("button-press-event", self.imageItemSelected)
+		eventBoxImageItem.connect("button-press-event", self.imageItemSelected, entry)
 		eventBoxImageItem.add(imagePlaceHolder)
 		
 		frameEventBoxImageItem.add(eventBoxImageItem)
@@ -101,11 +105,40 @@ class ModalWindowSelectItem:
 		
 		self.modalWindow.add(self.vBoxModalWindow)
 	
+	def textEnterCallBack(self, entry, *args):
+		
+		imageEventBox = args[0]
+		oldImage = imageEventBox.get_children()[0]
+		imageEventBox.remove(oldImage)
+		imagePlaceHolder = gtk.Image()
+                imagePlaceHolder.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file("./images/img_place_holder.gif").scale_simple(300, 200, 2))
+		imageEventBox.add(imagePlaceHolder)		
+		imageEventBox.show_all()
+		
+		self.parent.getLogger().debug("Inside in textEnterCallBack : ")
+		self.parent.getLogger().debug(args)
+		self.parent.getLogger().debug(entry.get_text())
+		self.itemHandler = self.manageTextSelected		
+		self.itemSelected = entry.get_text()		
+	
+
+
+	def manageTextSelected(self):
+		labelText = gtk.Label(self.itemSelected)
+		labelText.modify_font(pango.FontDescription("Courier Bold 60"))
+		self.exerciseWindow.modalWindowReturn(labelText)
+		
 	def manageImageSelected(self):
 		self.parent.getLogger().debug("Inside to manageImageSelected")
-		self.exerciseWindow.modalWindowReturnImage(self.itemSelected)		
+		self.exerciseWindow.modalWindowReturn(self.itemSelected)		
 	
 	def imageItemSelected(self, eventBox, *args):
+                self.parent.getLogger().debug("Inside a imageItemSelected, args: ")
+		self.parent.getLogger().debug(args)
+		
+		entryText = args[1]
+		entryText.set_text("")
+		
 		chooser = ObjectChooser(parent=self.modalWindow, what_filter='Image')
 		result = chooser.run()
 		self.parent.getLogger().debug("chooser result :")
@@ -206,13 +239,14 @@ class SimpleAssociationTemplate():
 		self.currentEventBoxSelected = eventBox
       		self.mainWindows.getLogger().debug("after of show() in itemSelectedCallBack")	
 
-        def modalWindowReturnImage(self, image):
-                self.mainWindows.getLogger().debug("Inside a modalWindowReturnImage")
-		self.mainWindows.getLogger().debug(image)
+        def modalWindowReturn(self, item):
+                self.mainWindows.getLogger().debug("Inside a modalWindowReturn")
+		self.mainWindows.getLogger().debug(item)
 		oldItem = self.currentEventBoxSelected.get_children()[0]
 		self.currentEventBoxSelected.remove(oldItem)
- 		self.currentEventBoxSelected.add(image)
+ 		self.currentEventBoxSelected.add(item)
 		self.currentEventBoxSelected.show_all()
+
 
 	def addEventBoxToVBox(self, eventBox, vBox):
 		frameEventBox = gtk.Frame() 
@@ -221,7 +255,7 @@ class SimpleAssociationTemplate():
 		
 	def createEventBox(self):
 		eventBox = gtk.EventBox()
-		eventBox.modify_bg(gtk.STATE_NORMAL, eventBox.get_colormap().alloc_color("gray"))
+		eventBox.modify_bg(gtk.STATE_NORMAL, eventBox.get_colormap().alloc_color("white"))
 		blankLabel = gtk.Label("")
 		blankLabel.modify_font(pango.FontDescription("Courier Bold 70"))
 		eventBox.add(blankLabel)

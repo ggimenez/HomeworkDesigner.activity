@@ -72,13 +72,13 @@ class ModalWindowSelectExercise:
 		# Tell WM this window belongs to parent
 		self.modalWindow.set_transient_for (parent)
 
-		self.modalWindow.set_default_size(600,600)
+		self.modalWindow.set_default_size(1000,500)
 		self.modalWindow.set_decorated(False)
 	
 		
 		self.vBoxModalWindow = gtk.VBox(False, 0)
 		
-		self.vBoxExercises =  gtk.VBox(True, 5)
+		self.hBoxExercises =  gtk.HBox(True, 1)
 		
 		exercisesTypes = ( [{"code":1, "imagePath":"./images/code1.png", "label":"Asociacion Simple"},
                                     {"code":2, "imagePath":"./images/code2.png", "label":"Encuentra el Diferente"},
@@ -86,7 +86,7 @@ class ModalWindowSelectExercise:
                                  )
 		
 		for exerciseType in exercisesTypes:
-			hBox = gtk.HBox(True, 0)
+			vBox = gtk.VBox(True, 0)
 			eventBox = gtk.EventBox()
 			eventBox.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color("gray"))
 		
@@ -94,12 +94,14 @@ class ModalWindowSelectExercise:
 			eventBox.connect("leave_notify_event", self.leaveNotifyEventBoxCallBack)
 			eventBox.connect("button-press-event", self.exerciseTypeSelectedCallBack, exerciseType)
 			image = gtk.Image()
-			image.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(exerciseType['imagePath']).scale_simple(200, 200, 2))
+			image.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(exerciseType['imagePath']).scale_simple(300, 200, 2))
 			label = gtk.Label(exerciseType['label'])
-			hBox.pack_start(image, False,False,0)
-			hBox.pack_start(label, False,False,0)
-			eventBox.add(hBox)
-			self.vBoxExercises.pack_start(eventBox, False,False,0)
+			label.modify_font(pango.FontDescription("Courier Bold 12"))
+			
+			vBox.pack_start(label, False,False,0)
+			vBox.pack_start(image, False,False,0)
+			eventBox.add(vBox)
+			self.hBoxExercises.pack_start(eventBox, False,False,0)
 		
 		imageButtonIcon = gtk.Image()
 		imageButtonIcon.set_from_stock(gtk.STOCK_CANCEL, gtk.ICON_SIZE_MENU)	
@@ -111,7 +113,7 @@ class ModalWindowSelectExercise:
 		hBoxButton = gtk.HBox(True,0)
 		hBoxButton.pack_start(buttonOk, False,False	,0)
 		
-		self.scrolledWindow.add_with_viewport(self.vBoxExercises)
+		self.scrolledWindow.add_with_viewport(self.hBoxExercises)
 		self.frameWindowScrolled.add(self.scrolledWindow)
 		self.vBoxModalWindow.pack_start(self.frameWindowScrolled, True,True,0)
 		
@@ -297,4 +299,3 @@ class HomeWorkDesigner(activity.Activity):
 
 	def write_file(self, tmp_file):
 		pass
-
