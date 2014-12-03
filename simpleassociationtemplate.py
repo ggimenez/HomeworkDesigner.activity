@@ -259,7 +259,8 @@ class SimpleAssociationTemplate():
 		blankLabel = gtk.Label("")
 		blankLabel.modify_font(pango.FontDescription("Courier Bold 70"))
 		eventBox.add(blankLabel)
-			
+		eventBox.set_size_request(LETTERS_SCALE[0], LETTERS_SCALE[1])	        
+		
 		return eventBox
 				
 	def setAllAvailableSelectionColour(self):
