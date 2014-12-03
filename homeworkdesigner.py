@@ -197,7 +197,7 @@ class HomeWorkDesigner(activity.Activity):
 	
 		self.deleteButton = ToolButton('edit-delete')
 		self.deleteButton.set_tooltip(_('Borrar Ejercicio'))
-		#self.newButton.connect("clicked", self.newExerciseCallBack)
+		self.deleteButton.connect("clicked", self.buttonDeleteExerciseCallBack)
 		toolbar_box.toolbar.insert(self.deleteButton, 6)
 		
 		self.exportButton = ToolButton('document-save')
@@ -214,40 +214,80 @@ class HomeWorkDesigner(activity.Activity):
 
 		self.vBoxMain = gtk.VBox(False, 2)
 		self.set_canvas(self.vBoxMain)
+		
+		self.amountExercises = 0		
+		self.currentExerciseIndex = -1		
+		self.manageNevegationButtons()
+		
 		self.show_all()
 
-			
-	
-	def manageBackNextButtons(self):
-		if self.currentIndexExercise == 0:
-			self.buttonBefore.set_sensitive(False) 
-			self.buttonNext.set_sensitive(True) 
-		elif self.currentIndexExercise > 0 and self.currentIndexExercise < (self.amountExercises-1):
-			
-			self.buttonBefore.set_sensitive(True) 
-			self.buttonNext.set_sensitive(True)
-		else:
-			
-			self.buttonBefore.set_sensitive(True) 
-			self.buttonNext.set_sensitive(False) 
+	def manageNevegationButtons(self):
+		self.getLogger().debug("inside to manageNevegationButtons ")
+		self.getLogger().debug("self.amountExercises : %s "  % self.amountExercises)
+		self.getLogger().debug("self.currentExerciseIndex %s : " % self.currentExerciseIndex)
 
+		if self.amountExercises == 0 :
+			self.buttonBefore.set_sensitive(False)				
+			self.buttonNext.set_sensitive(False)
+			self.deleteButton.set_sensitive(False)
+			self.exportButton.set_sensitive(False)
+		else:
+			self.deleteButton.set_sensitive(True)
+			self.exportButton.set_sensitive(True)	
+			if self.currentExerciseIndex == 0:
+				self.buttonBefore.set_sensitive(False)
+			else:
+				self.buttonBefore.set_sensitive(True)
+
+			if self.currentExerciseIndex == (self.amountExercises-1):
+                        	self.buttonNext.set_sensitive(False)
+                        else:
+                                self.buttonNext.set_sensitive(True)
 	
 	def newExerciseCallBack(self, button, *args):
+		self.getLogger().debug("inside to newExerciseCallBack")
 		dialogExercise = ModalWindowSelectExercise(self)
 		dialogExercise.show()
+		self.getLogger().debug("exit from newExerciseCallBack")
 		
 	def nextButtonCallBack(self, button, *args):
-		self.currentIndexExercise = self.currentIndexExercise + 1
-		self.createNewWindowExercise()
+		self.vBoxMain.get_children()[self.currentExerciseIndex].hide()
+                self.currentExerciseIndex = self.currentExerciseIndex + 1
+                self.vBoxMain.get_children()[self.currentExerciseIndex].show()
+                self.manageNevegationButtons()
+
 		
 	def getLogger(self):
 		return self._logger
 	
 	def backButtonCallBack(self, button, *args):
-		self.currentIndexExercise = self.currentIndexExercise - 1
-		self.createNewWindowExercise()
+		self.vBoxMain.get_children()[self.currentExerciseIndex].hide()
+		self.currentExerciseIndex = self.currentExerciseIndex - 1
+		self.vBoxMain.get_children()[self.currentExerciseIndex].show()
+		self.manageNevegationButtons()
 	
+	def buttonDeleteExerciseCallBack(self, button, *args):
+		self.getLogger().debug("inside to buttonDeleteExercise")
+		self.getLogger().debug(self.amountExercises)
+		self.getLogger().debug(self.currentExerciseIndex)
+		self.getLogger().debug(self.vBoxMain.get_children())
+		if self.amountExercises != 1:
+			if self.currentExerciseIndex == (self.amountExercises - 1):
+				self.vBoxMain.get_children()[self.currentExerciseIndex - 1].show_all()
+			else:
+				self.vBoxMain.get_children()[self.currentExerciseIndex + 1].show_all()
+		
+		windowToDelete = self.vBoxMain.get_children()[self.currentExerciseIndex]
+                self.vBoxMain.remove(windowToDelete)
+		if self.currentExerciseIndex != 0:
+			self.currentExerciseIndex = self.currentExerciseIndex - 1				
+		self.amountExercises = self.amountExercises - 1
+		self.manageNevegationButtons()
+		self.getLogger().debug("exit from buttonDeleteExercise")		
+
+
 	def createNewExerciseType(self, codeExerciseType):
+		self.getLogger().debug("inside to createNewExerciseType")
 		newExerciseTemplate = None
 		newWindowExerciseTemplate = None
 		if codeExerciseType == 1:
@@ -263,8 +303,16 @@ class HomeWorkDesigner(activity.Activity):
 		
 	
 		vBoxMain.pack_start(newWindowExerciseTemplate, True, True, 0)
-		newWindowExerciseTemplate.show_all()
+		self.amountExercises = self.amountExercises + 1
+		self.currentExerciseIndex = self.currentExerciseIndex + 1
 		
+		self.getLogger().debug(self.amountExercises)
+                self.getLogger().debug(self.currentExerciseIndex)
+		self.getLogger().debug("update after createNewExerciseType")		
+
+		self.manageNevegationButtons()
+		newWindowExerciseTemplate.show_all()
+		self.getLogger().debug("exit from buttonDeleteExercise")
 			
 	def read_file(self, tmp_file):
 		pass
