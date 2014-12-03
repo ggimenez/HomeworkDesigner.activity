@@ -125,12 +125,12 @@ class ModalWindowSelectItem:
 
 	def manageTextSelected(self):
 		labelText = gtk.Label(self.itemSelected)
-		labelText.modify_font(pango.FontDescription("Courier Bold 60"))
-		self.exerciseWindow.modalWindowReturn(labelText)
+		#labelText.modify_font(pango.FontDescription("Courier Bold 60"))
+		self.exerciseWindow.modalWindowReturn(labelText, "text")
 		
 	def manageImageSelected(self):
 		self.parent.getLogger().debug("Inside to manageImageSelected")
-		self.exerciseWindow.modalWindowReturn(self.itemSelected)		
+		self.exerciseWindow.modalWindowReturn(self.itemSelected, "image")		
 	
 	def imageItemSelected(self, eventBox, *args):
                 self.parent.getLogger().debug("Inside a imageItemSelected, args: ")

@@ -68,12 +68,17 @@ class SimpleAssociationTemplate():
 		self.currentEventBoxSelected = eventBox
       		self.mainWindows.getLogger().debug("after of show() in itemSelectedCallBack")	
 
-        def modalWindowReturn(self, item):
+        def modalWindowReturn(self, item, itemType):
                 self.mainWindows.getLogger().debug("Inside a modalWindowReturn")
 		self.mainWindows.getLogger().debug(item)
 		oldItem = self.currentEventBoxSelected.get_children()[0]
 		self.currentEventBoxSelected.remove(oldItem)
- 		self.currentEventBoxSelected.add(item)
+ 		
+		if itemType == "text":
+			item.modify_font(pango.FontDescription("Courier Bold 60"))
+
+		
+		self.currentEventBoxSelected.add(item)
 		self.currentEventBoxSelected.show_all()
 
 

@@ -33,7 +33,7 @@ from sugar.activity.widgets import StopButton
 from sugar.activity.widgets import ShareButton
 from sugar.graphics.toolbutton import ToolButton
 
-
+from sugar.graphics.alert import Alert
 
 import pygtk
 pygtk.require('2.0')
@@ -44,7 +44,7 @@ from array import *
 import pango
 
 from simpleassociationtemplate import SimpleAssociationTemplate
-from findthedifferent import FindTheDifferent
+from findthedifferenttemplate import FindTheDifferentTemplate
 from searchthesame import SearchTheSame
 
 
@@ -270,7 +270,9 @@ class HomeWorkDesigner(activity.Activity):
 		self.getLogger().debug("inside to buttonDeleteExercise")
 		self.getLogger().debug(self.amountExercises)
 		self.getLogger().debug(self.currentExerciseIndex)
-		self.getLogger().debug(self.vBoxMain.get_children())
+		self.getLogger().debug(self.vBoxMain.get_children())	
+
+
 		if self.amountExercises != 1:
 			if self.currentExerciseIndex == (self.amountExercises - 1):
 				self.vBoxMain.get_children()[self.currentExerciseIndex - 1].show_all()
@@ -295,6 +297,9 @@ class HomeWorkDesigner(activity.Activity):
 			newExerciseTemplate = SimpleAssociationTemplate()
 			newWindowExerciseTemplate = newExerciseTemplate.getWindow(self)
 			self._logger.debug("After : ewWindowExerciseTemplate = newExerciseTemplate.getWindow(self)")
+		elif codeExerciseType == 2:
+			newExerciseTemplate = FindTheDifferentTemplate()
+			newWindowExerciseTemplate = newExerciseTemplate.getWindow(self)		
 			
 		vBoxMain = self.vBoxMain
 		allWindowsExercises = vBoxMain.get_children()
