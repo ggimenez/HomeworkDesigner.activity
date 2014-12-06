@@ -45,7 +45,7 @@ import pango
 
 from simpleassociationtemplate import SimpleAssociationTemplate
 from findthedifferenttemplate import FindTheDifferentTemplate
-from searchthesame import SearchTheSame
+from searchthesametemplate import SearchTheSameTemplate
 
 
 class ModalWindowSelectExercise:
@@ -300,7 +300,11 @@ class HomeWorkDesigner(activity.Activity):
 		elif codeExerciseType == 2:
 			newExerciseTemplate = FindTheDifferentTemplate()
 			newWindowExerciseTemplate = newExerciseTemplate.getWindow(self)		
-			
+		elif codeExerciseType == 3:
+			newExerciseTemplate = SearchTheSameTemplate()
+			newWindowExerciseTemplate = newExerciseTemplate.getWindow(self)
+		
+	
 		vBoxMain = self.vBoxMain
 		allWindowsExercises = vBoxMain.get_children()
                 for windowExercise in allWindowsExercises:
