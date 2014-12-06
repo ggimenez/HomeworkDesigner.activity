@@ -86,6 +86,33 @@ class SearchTheSameTemplate():
 			eventBox.add(letterLabel)
 			eventBox.show_all()
 	
+	def givemeMapTable(self, rows, columns):
+		theMatrix = [[None] * columns for i in range(rows)]
+		
+		row = 0
+		while row < rows :
+			column = 0
+			#self.mainWindows.getLogger().debug("row: %s" % row)
+			while column < columns: 
+				#self.mainWindows.getLogger().debug("column: %s" % column)
+				isFoundMap = False				
+				
+				#self.mainWindows.getLogger().debug(theMatrix)
+				while (isFoundMap is False) and (theMatrix[row][column] is None):
+					rowMap = random.randrange(rows)
+					columnMap = random.randrange(columns)					
+					
+					if theMatrix[rowMap][columnMap] is None:
+						theMatrix[row][column] = [rowMap,columnMap]			
+						theMatrix[rowMap][columnMap] = [row,column]
+						isFoundMap = True
+
+				column = column + 1
+			row = row + 1
+		self.mainWindows.getLogger().debug(theMatrix)
+		self.mainWindows.getLogger().debug("exit from givemeMapTable")
+		return theMatrix
+
 	def cellSelectedCallBack(self, eventBox, *args):
 		pass		
 			
@@ -113,6 +140,7 @@ class SearchTheSameTemplate():
 		
 		rowsCount = 0
 		self.setAllAvailableSelectionColour()
+		self.mapTable = self.givemeMapTable(rows, columns)
 		while rowsCount < (rows):
 			
 			vBox = gtk.VBox(True, 0)
