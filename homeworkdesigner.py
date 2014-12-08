@@ -272,18 +272,22 @@ class HomeWorkDesigner(activity.Activity):
 		self.getLogger().debug(self.currentExerciseIndex)
 		self.getLogger().debug(self.vBoxMain.get_children())	
 
-
-		if self.amountExercises != 1:
-			if self.currentExerciseIndex == (self.amountExercises - 1):
-				self.vBoxMain.get_children()[self.currentExerciseIndex - 1].show_all()
-			else:
-				self.vBoxMain.get_children()[self.currentExerciseIndex + 1].show_all()
-		
 		windowToDelete = self.vBoxMain.get_children()[self.currentExerciseIndex]
                 self.vBoxMain.remove(windowToDelete)
-		if self.currentExerciseIndex != 0:
+		if self.currentExerciseIndex == (self.amountExercises - 1):
 			self.currentExerciseIndex = self.currentExerciseIndex - 1				
 		self.amountExercises = self.amountExercises - 1
+		
+
+		if self.amountExercises != 1:
+			
+			if self.currentExerciseIndex == (self.amountExercises - 1):
+				self.getLogger().debug("Inside to: if self.currentExerciseIndex == (self.amountExercises - 1):")
+				self.vBoxMain.get_children()[self.currentExerciseIndex - 1].show_all()
+			else:
+				self.getLogger().debug("inside to: Else")
+				self.vBoxMain.get_children()[self.currentExerciseIndex + 1].show_all()
+		
 		self.manageNevegationButtons()
 		self.getLogger().debug("exit from buttonDeleteExercise")		
 
