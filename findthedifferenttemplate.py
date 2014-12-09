@@ -21,7 +21,7 @@ class FindTheDifferentTemplate():
 			eventBox.modify_bg(gtk.STATE_NORMAL, eventBox.get_colormap().alloc_color(colour))
 	
 		
-	def modalWindowReturn(self, item, itemType):
+	def modalWindowReturn(self, item, itemType, args):
                 self.mainWindows.getLogger().debug("Inside a modalWindowReturn")
                 self.mainWindows.getLogger().debug(item)
 		copyMethod = None	
@@ -29,22 +29,24 @@ class FindTheDifferentTemplate():
 		indexCurrentEventBox = self.currentHBoxItems.child_get_property(self.currentEventBoxSelected, "position")
 		
 		if indexCurrentEventBox == self.currentDifferentIndex:
-			itemCopy = self.copyItem(item, itemType)
+			itemCopy = self.copyItem(item, itemType, args)
 			oldItem = self.currentEventBoxSelected.get_children()[0]
                         self.currentEventBoxSelected.remove(oldItem)
                         self.currentEventBoxSelected.add(itemCopy)
-                        self.currentEventBoxSelected.show_all()			
+                        self.currentEventBoxSelected.show_all()
+			self.currentEventBoxSelected.filled = True			
 		else:
 	
 			for index,eventBox in enumerate(self.currentHBoxItems.get_children()):
                 		if index != self.currentDifferentIndex:
-					itemCopy = self.copyItem(item, itemType)
+					itemCopy = self.copyItem(item, itemType, args)
 					oldItem = eventBox.get_children()[0]
                 			eventBox.remove(oldItem)
 					eventBox.add(itemCopy)
+					eventBox.filled = True
                 			eventBox.show_all()
 	
-	def copyItem(self, item, itemType):
+	def copyItem(self, item, itemType, args):
 		self.mainWindows.getLogger().debug("Inside to copyItem:")
 		self.mainWindows.getLogger().debug(itemType)
 		itemCopy = None
@@ -53,6 +55,7 @@ class FindTheDifferentTemplate():
 			itemCopy.modify_font(pango.FontDescription("Courier Bold 40"))
 		elif itemType == "image":		
 			itemCopy = gtk.image_new_from_pixbuf(item.get_pixbuf())
+			itemCopy.imageName = args['imageName']
 		return itemCopy	
 		
 	def selectionCallBack(self,eventBox, *args):
@@ -82,13 +85,14 @@ class FindTheDifferentTemplate():
 			
 		windowFindTheDifferent = gtk.ScrolledWindow()
 		windowFindTheDifferent.exerciseName = "FindTheDifferentTemplate"
-				
+		windowFindTheDifferent.exerciseInstance = self		
+			
 		frameExercises = gtk.Frame() 
 		
 		vBoxWindows = gtk.VBox(False, 5)
-		vBoxExercises = gtk.VBox(False, 5)
+		self.vBoxExercises = gtk.VBox(False, 5)
 		
-		frameExercises.add(vBoxExercises)
+		frameExercises.add(self.vBoxExercises)
 		
 		indexs = [0,1,2,3,4]
 		for index in indexs:
@@ -101,27 +105,76 @@ class FindTheDifferentTemplate():
 			until = 3
 			different = random.randint(0,until)
 			
-			while count <= until:
-				
-				eventBox = gtk.EventBox()
-				if count == different:
-					eventBox = self.createEventBox()
-				else:
-					eventBox = self.createEventBox()
-					
+			while count <= until:	
+			
+				eventBox = self.createEventBox()	
 				eventBox.connect("button-press-event", self.selectionCallBack, different, hBox)
+				if count == different:
+					eventBox.different = True
+				else:
+					eventBox.different = False				
+				eventBox.filled = False
 				hBox.pack_start(eventBox, False,True,0)
 				count = count + 1
 			
 			
 			frame.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color("orange"))
-			vBoxExercises.pack_start(frame, True,True,10)
+			self.vBoxExercises.pack_start(frame, True,True,10)
 		
 		
 		vBoxWindows.pack_start(frameExercises, True,True,0)
 		windowFindTheDifferent.add_with_viewport(vBoxWindows)
 		
 		return windowFindTheDifferent
-		
 	
-		
+	def validateFilled(self, hBox):
+		eventBoxEqual = None
+		eventBoxDifferent = None
+		foundEqualFilled = False
+		foundDifferentFilled = False
+		response = False
+		for eventBox in hBox.get_children():				
+			if eventBox.different == True:
+				if eventBox.filled == True:
+					eventBoxDifferent = eventBox
+					foundDifferentFilled = True
+				else:
+					break
+			else:
+				if eventBox.filled == True:
+					foundEqualFilled = True
+				  	eventBoxEqual = eventBox
+		if foundEqualFilled is True and foundDifferentFilled is True:
+			response = True
+		return (response, eventBoxEqual, eventBoxDifferent)			
+
+	def parseToJson(self):
+        	theExerciseJson = {}
+                theExerciseJson['codeType'] = 2
+                theExerciseJson['items'] = []
+                itemsToCopy = []
+                for hFrame in self.vBoxExercises.get_children():
+			self.mainWindows.getLogger().debug("Hframe child: ")
+			self.mainWindows.getLogger().debug(hFrame.get_children()[0])
+			response, eventBoxEqual, eventBoxDifferent = self.validateFilled(hFrame.get_children()[0])			
+			if response is True:				                         
+                                payloadEqual = eventBoxEqual.get_children()[0]
+                                payloadDifferent = eventBoxDifferent.get_children()[0]
+                                item = {}
+                                item['equal'] = self.parsePayloadToJson(payloadEqual, itemsToCopy)
+                                item['different'] = self.parsePayloadToJson(payloadDifferent, itemsToCopy)
+                                theExerciseJson['items'].append(item)
+                return (theExerciseJson, itemsToCopy)
+
+	def parsePayloadToJson(self, payload, itemsToCopy):
+                self.mainWindows.getLogger().debug(" Inside to parseToJson")
+                theJson = {}
+                self.mainWindows.getLogger().debug(payload.__class__.__name__)
+                if payload.__class__.__name__ == "Label":
+                        theJson['type'] = "letter"
+                        theJson["value"] = payload.get_text()
+                if payload.__class__.__name__ == "Image":
+                        theJson['type'] = "image"
+                        theJson['value'] = "./images/" + payload.imageName
+                        itemsToCopy.append({"type":"image", "value":payload})
+                return theJson	

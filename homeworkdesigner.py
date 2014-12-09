@@ -299,12 +299,10 @@ class HomeWorkDesigner(activity.Activity):
 		theJson["exercises"] = []
 		itemsToCopy = []
 		for exerciseWindow in allExerciseWindows:
-			if exerciseWindow.exerciseName == "SimpleAssociationTemplate":
-				exerciseJson, itemsToCopyAux = exerciseWindow.exerciseInstance.parseToJson() 
-				itemsToCopy = itemsToCopy + itemsToCopyAux
-				theJson['exercises'].append(exerciseJson)	
-				
-				
+			exerciseJson, itemsToCopyAux = exerciseWindow.exerciseInstance.parseToJson() 
+			itemsToCopy = itemsToCopy + itemsToCopyAux
+			theJson['exercises'].append(exerciseJson)	
+								
 
 		self.getLogger().debug(theJson)
 		self.getLogger().debug(itemsToCopy)
