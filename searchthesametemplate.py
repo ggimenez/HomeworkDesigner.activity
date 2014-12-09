@@ -184,7 +184,8 @@ class SearchTheSameTemplate():
 		self.mainWindows = mainWindows
 			
 		windowSearchTheSame= gtk.ScrolledWindow()
-		
+		windowSearchTheSame.exerciseName = "SearchTheSameTemplate"		
+	
 		frameExercises = gtk.Frame() 
 		
 		

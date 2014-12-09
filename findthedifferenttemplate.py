@@ -81,7 +81,8 @@ class FindTheDifferentTemplate():
 		self.mainWindows = mainWindows
 			
 		windowFindTheDifferent = gtk.ScrolledWindow()
-		
+		windowFindTheDifferent.exerciseName = "FindTheDifferentTemplate"
+				
 		frameExercises = gtk.Frame() 
 		
 		vBoxWindows = gtk.VBox(False, 5)

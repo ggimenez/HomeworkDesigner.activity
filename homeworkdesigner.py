@@ -202,7 +202,7 @@ class HomeWorkDesigner(activity.Activity):
 		
 		self.exportButton = ToolButton('document-save')
 		self.exportButton.set_tooltip(_('Exportar Ejercicio'))
-		#self.newButton.connect("clicked", self.newExerciseCallBack)
+		self.exportButton.connect("clicked", self.exportExerciseCallBack)
 		toolbar_box.toolbar.insert(self.exportButton, 7)
 	
 		stop_button = StopButton(self)
@@ -291,6 +291,23 @@ class HomeWorkDesigner(activity.Activity):
 		self.manageNevegationButtons()
 		self.getLogger().debug("exit from buttonDeleteExercise")		
 
+	def exportExerciseCallBack(self, *args):
+		self.getLogger().debug("Inside to exportExerciseCallBack")
+		allExerciseWindows = self.vBoxMain.get_children()
+		theJson = {}
+		theJson["name"] = "JSON de prueba"
+		theJson["exercises"] = []
+		itemsToCopy = []
+		for exerciseWindow in allExerciseWindows:
+			if exerciseWindow.exerciseName == "SimpleAssociationTemplate":
+				exerciseJson, itemsToCopyAux = exerciseWindow.exerciseInstance.parseToJson() 
+				itemsToCopy = itemsToCopy + itemsToCopyAux
+				theJson['exercises'].append(exerciseJson)	
+				
+				
+
+		self.getLogger().debug(theJson)
+		self.getLogger().debug(itemsToCopy)
 
 	def createNewExerciseType(self, codeExerciseType):
 		self.getLogger().debug("inside to createNewExerciseType")
@@ -326,6 +343,7 @@ class HomeWorkDesigner(activity.Activity):
 		self.manageNevegationButtons()
 		newWindowExerciseTemplate.show_all()
 		self.getLogger().debug("exit from buttonDeleteExercise")
+ 	
 			
 	def read_file(self, tmp_file):
 		pass

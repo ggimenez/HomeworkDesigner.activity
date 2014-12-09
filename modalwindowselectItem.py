@@ -126,11 +126,11 @@ class ModalWindowSelectItem:
 	def manageTextSelected(self):
 		labelText = gtk.Label(self.itemSelected)
 		#labelText.modify_font(pango.FontDescription("Courier Bold 60"))
-		self.exerciseWindow.modalWindowReturn(labelText, "text")
+		self.exerciseWindow.modalWindowReturn(labelText, "text", {})
 		
 	def manageImageSelected(self):
 		self.parent.getLogger().debug("Inside to manageImageSelected")
-		self.exerciseWindow.modalWindowReturn(self.itemSelected, "image")		
+		self.exerciseWindow.modalWindowReturn(self.itemSelected, "image", {"imageName":self.itemSelected.imageName})		
 	
 	def imageItemSelected(self, eventBox, *args):
                 self.parent.getLogger().debug("Inside a imageItemSelected, args: ")
@@ -148,16 +148,17 @@ class ModalWindowSelectItem:
 		if result == gtk.RESPONSE_ACCEPT:
 			self.jobject = chooser.get_selected_object()
 			self.path = str(self.jobject.get_file_path())
-			'''self.parent.getLogger().debug(self.jobject)'''	
+			self.parent.getLogger().debug(self.jobject)	
 			self.parent.getLogger().debug(self.path)
-			'''self.parent.getLogger().debug(self.jobject.get_metadata().keys())'''
-			'''self.parent.getLogger().debug(self.jobject.get_metadata().get('mime_type'))'''			
+			self.parent.getLogger().debug(self.jobject.get_metadata().keys())
+			self.parent.getLogger().debug(self.jobject.get_metadata().get('title'))			
 		if self.path != None:
 			imageSelected = gtk.Image()
 			imageSelected.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(self.path).scale_simple(300, 300, 2))
 			
 			imageSelectedCopy = gtk.Image()
 			imageSelectedCopy.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(self.path).scale_simple(IMAGES_SCALE[0], IMAGES_SCALE[1], 2))
+			imageSelectedCopy.imageName = self.jobject.get_metadata().get('title')
 			
    			self.itemSelected = imageSelectedCopy
 						
