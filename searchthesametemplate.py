@@ -120,14 +120,14 @@ class SearchTheSameTemplate():
 		self.mainWindows.getLogger().debug("exit from givemeMapTable")
 		return theMatrix
 
-	def modalWindowReturn(self, item, itemType):
+	def modalWindowReturn(self, item, itemType, args):
                 self.mainWindows.getLogger().debug("Inside a modalWindowReturn")
                 self.mainWindows.getLogger().debug(item)
                 copyMethod = None
 
                 #indexCurrentEventBox = self.currentHBoxItems.child_get_property(self.currentEventBoxSelected, "position")
 
-		itemCopy = self.copyItem(item, itemType)
+		itemCopy = self.copyItem(item, itemType, args)
                 oldItem = self.currentEventBoxSelected.get_children()[0]
                 self.currentEventBoxSelected.remove(oldItem)
                 self.currentEventBoxSelected.add(itemCopy)
@@ -136,6 +136,8 @@ class SearchTheSameTemplate():
 		self.setUnavailableColour(colour)
 		self.fakeSelection(self.currentEventBoxSelected, colour)	
 	
+		self.payloads.append(itemCopy)
+
 		hBox = self.currentEventBoxSelected.get_parent()
 		vBox  = hBox.get_parent()
 		
@@ -144,7 +146,7 @@ class SearchTheSameTemplate():
 		#self.mainWindows.getLogger().debug(hBox.get_children()[self.currentColumnPairIndex])
 
 		pairEventBox = vBox.get_children()[self.currentRowPairIndex].get_children()[self.currentColumnPairIndex]
-		itemCopyPair = self.copyItem(item, itemType)
+		itemCopyPair = self.copyItem(item, itemType, args)
                 oldItemPair = pairEventBox.get_children()[0]
                 pairEventBox.remove(oldItemPair)
                 pairEventBox.add(itemCopyPair)
@@ -154,7 +156,7 @@ class SearchTheSameTemplate():
 	
 
 
-	def copyItem(self, item, itemType):
+	def copyItem(self, item, itemType, args):
                 self.mainWindows.getLogger().debug("Inside to copyItem:")
                 self.mainWindows.getLogger().debug(itemType)
                 itemCopy = None
@@ -163,6 +165,7 @@ class SearchTheSameTemplate():
                         itemCopy.modify_font(pango.FontDescription("Courier Bold 40"))
                 elif itemType == "image":
                         itemCopy = gtk.image_new_from_pixbuf(item.get_pixbuf())
+			itemCopy.imageName = args['imageName']
                 return itemCopy
 
 
@@ -185,6 +188,7 @@ class SearchTheSameTemplate():
 			
 		windowSearchTheSame= gtk.ScrolledWindow()
 		windowSearchTheSame.exerciseName = "SearchTheSameTemplate"		
+		windowSearchTheSame.exerciseInstance = self		
 	
 		frameExercises = gtk.Frame() 
 		
@@ -203,6 +207,7 @@ class SearchTheSameTemplate():
 		rowsCount = 0
 		self.setAllAvailableSelectionColour()
 		self.mapTable = self.givemeMapTable(rows, columns)
+		self.payloads = []
 		while rowsCount < (rows):
 			
 			hBox = gtk.HBox(True, 0)
@@ -224,3 +229,26 @@ class SearchTheSameTemplate():
 		
 		return windowSearchTheSame
 	
+	
+	def parseToJson(self):
+                theExerciseJson = {}
+                theExerciseJson['codeType'] = 3
+                theExerciseJson['items'] = []
+                itemsToCopy = []
+                for payload in self.payloads:
+                        self.mainWindows.getLogger().debug("Hframe child: ")
+                        theExerciseJson['items'].append(self.parsePayloadToJson(payload, itemsToCopy))
+                return (theExerciseJson, itemsToCopy)
+
+        def parsePayloadToJson(self, payload, itemsToCopy):
+                self.mainWindows.getLogger().debug(" Inside to parseToJson")
+                theJson = {}
+                self.mainWindows.getLogger().debug(payload.__class__.__name__)
+                if payload.__class__.__name__ == "Label":
+                        theJson['type'] = "letter"
+                        theJson["value"] = payload.get_text()
+                if payload.__class__.__name__ == "Image":
+                        theJson['type'] = "image"
+                        theJson['value'] = "./images/" + payload.imageName
+                        itemsToCopy.append({"type":"image", "value":payload})
+                return theJson	
