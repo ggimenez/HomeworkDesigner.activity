@@ -1,0 +1,7 @@
+[Activity]
+name = HomeWorkViewer
+activity_version = 3
+bundle_id = org.sugarlabs.HomeWorkViewer
+exec = sugar-activity homeworkviewer.HomeWorkViewer
+icon = activity-helloworld
+license = GPLv2+
