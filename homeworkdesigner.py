@@ -47,6 +47,10 @@ from simpleassociationtemplate import SimpleAssociationTemplate
 from findthedifferenttemplate import FindTheDifferentTemplate
 from searchthesametemplate import SearchTheSameTemplate
 
+import os
+import zipfile
+from sugar.datastore import datastore
+
 
 class ModalWindowSelectExercise:
 
@@ -291,6 +295,11 @@ class HomeWorkDesigner(activity.Activity):
 		self.manageNevegationButtons()
 		self.getLogger().debug("exit from buttonDeleteExercise")		
 
+	def zipdir(self,path, zip):
+    		for root, dirs, files in os.walk(path):
+        		for file in files:
+            			zip.write(os.path.join(root, file))	
+
 	def exportExerciseCallBack(self, *args):
 		self.getLogger().debug("Inside to exportExerciseCallBack")
 		allExerciseWindows = self.vBoxMain.get_children()
@@ -302,7 +311,9 @@ class HomeWorkDesigner(activity.Activity):
 			exerciseJson, itemsToCopyAux = exerciseWindow.exerciseInstance.parseToJson() 
 			itemsToCopy = itemsToCopy + itemsToCopyAux
 			theJson['exercises'].append(exerciseJson)	
-								
+		zipf = zipfile.ZipFile('prueba.xo', 'w')								
+		self.zipdir('activitytemplate/', zipf)
+    		zipf.close()		
 
 		self.getLogger().debug(theJson)
 		self.getLogger().debug(itemsToCopy)
