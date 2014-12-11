@@ -107,7 +107,8 @@ class SimpleAssociationTemplate():
 	def parseToJson(self):
 		theExerciseJson = {}
                 theExerciseJson['codeType'] = 1
-                theExerciseJson['items'] = []
+                theExerciseJson['name'] = "Asociacion Simple" 
+		theExerciseJson['items'] = []
 		itemsToCopy = []
 		for index, option in enumerate(self.vBoxOptions.get_children()):
 
@@ -132,7 +133,7 @@ class SimpleAssociationTemplate():
 		if payload.__class__.__name__ == "Image":
 			theJson['type'] = "image"
 			theJson['value'] = "./images/" + payload.imageName
-			itemsToCopy.append({"type":"image", "value":payload})
+			itemsToCopy.append({"type":"image", "value":payload, "fileName":payload.imageName, "fileType":payload.imageType})
 		return theJson							
 
 	def setAllAvailableSelectionColour(self):

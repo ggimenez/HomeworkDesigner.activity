@@ -250,5 +250,5 @@ class SearchTheSameTemplate():
                 if payload.__class__.__name__ == "Image":
                         theJson['type'] = "image"
                         theJson['value'] = "./images/" + payload.imageName
-                        itemsToCopy.append({"type":"image", "value":payload})
+                        itemsToCopy.append({"type":"image", "value":payload, "fileName":payload.imageName, "fileType":payload.imageType})
                 return theJson	

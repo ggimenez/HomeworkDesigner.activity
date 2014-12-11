@@ -50,7 +50,7 @@ from searchthesametemplate import SearchTheSameTemplate
 import os
 import zipfile
 from sugar.datastore import datastore
-
+import glob
 
 class ModalWindowSelectExercise:
 
@@ -153,9 +153,9 @@ class HomeWorkDesigner(activity.Activity):
 		self._logger.setLevel(logging.DEBUG)
 		
 		'''Obtenemos el JSON de la Actividad'''
-		json_data=open('json.txt')
+		'''json_data=open('json.txt')
 		self.activity = json.load(json_data, object_hook=lambda d: namedtuple('Activity', d.keys())(*d.values()))
-		json_data.close()
+		json_data.close()'''
 
 		"""Set up the HelloWorld activity."""
 		activity.Activity.__init__(self, handle)
@@ -311,9 +311,34 @@ class HomeWorkDesigner(activity.Activity):
 			exerciseJson, itemsToCopyAux = exerciseWindow.exerciseInstance.parseToJson() 
 			itemsToCopy = itemsToCopy + itemsToCopyAux
 			theJson['exercises'].append(exerciseJson)	
-		zipf = zipfile.ZipFile('prueba.xo', 'w')								
-		self.zipdir('activitytemplate/', zipf)
+		
+		with open('./sugar-helloworld.activity/json.txt', 'w') as outfile:
+			outfile.truncate()
+			json.dump(theJson, outfile)
+			outfile.close()			
+		
+		imagesToDelete = glob.glob('./sugar-helloworld.activity/images/*')
+		for imageToDelete in imagesToDelete:
+			os.remove(imageToDelete)
+		
+		for itemToAdd in itemsToCopy:
+			if itemToAdd['type'] == "image":
+				pixbuf = itemToAdd['value'].get_pixbuf()
+				pixbuf.save('./sugar-helloworld.activity/images/' + itemToAdd['fileName'], itemToAdd['fileType'])	 				
+
+
+		#self.getLogger().debug(self.get_activity_root() + '/instance/' + 'prueba.xo' )	
+		zipf = zipfile.ZipFile(self.get_activity_root() + '/instance/' + 'HomeWorkViewer.activity.xo', 'w')								
+		self.zipdir('sugar-helloworld.activity/', zipf)
     		zipf.close()		
+		
+		file_dsobject = datastore.create()
+		file_dsobject.metadata['title'] = "HomeWorkViewer.activity.xo"
+		file_dsobject.metadata['mime_type'] = "application/vnd.olpc-sugar"
+		file_path = os.path.join(self.get_activity_root(), 'instance', "HomeWorkViewer.activity.xo")
+		file_dsobject.set_file_path(file_path)
+		datastore.write(file_dsobject)	
+
 
 		self.getLogger().debug(theJson)
 		self.getLogger().debug(itemsToCopy)
