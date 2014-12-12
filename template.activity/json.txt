@@ -1,0 +1,1 @@
+{"exercises": [{"items": [{"correspondence": {"type": "letter", "value": "Hi!"}, "option": {"type": "letter", "value": "Hola"}}], "name": "Asociacion Simple", "codeType": 1}], "name": "JSON de prueba"}

@@ -1,0 +1,7 @@
+[Activity]
+name = nombre con espacios
+activity_version = 1
+bundle_id = org.sugarlabs.nombreconespacios
+exec = sugar-activity homeworkviewer.HomeWorkViewer
+icon = activity-helloworld
+license = GPLv2+
