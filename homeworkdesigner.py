@@ -171,9 +171,9 @@ class HomeWorkDesigner(activity.Activity):
 		toolbar_box.toolbar.insert(activity_button, 0)
 		activity_button.show()
 
-		title_entry = TitleEntry(self)
-		toolbar_box.toolbar.insert(title_entry, 1)
-		title_entry.show()
+		self.title_entry = TitleEntry(self)
+		toolbar_box.toolbar.insert(self.title_entry, 1)
+		self.title_entry.show()
 
 		separator = gtk.SeparatorToolItem()
 		separator.props.draw = False
@@ -308,36 +308,62 @@ class HomeWorkDesigner(activity.Activity):
 		theJson["exercises"] = []
 		itemsToCopy = []
 		for exerciseWindow in allExerciseWindows:
-			exerciseJson, itemsToCopyAux = exerciseWindow.exerciseInstance.parseToJson() 
-			itemsToCopy = itemsToCopy + itemsToCopyAux
-			theJson['exercises'].append(exerciseJson)	
-		
-		with open('./sugar-helloworld.activity/json.txt', 'w') as outfile:
-			outfile.truncate()
-			json.dump(theJson, outfile)
-			outfile.close()			
-		
-		imagesToDelete = glob.glob('./sugar-helloworld.activity/images/*')
+				exerciseJson, itemsToCopyAux = exerciseWindow.exerciseInstance.parseToJson()
+				itemsToCopy = itemsToCopy + itemsToCopyAux
+				theJson['exercises'].append(exerciseJson)
+
+		with open('./template.activity/json.txt', 'w') as outfile:
+				outfile.truncate()
+				json.dump(theJson, outfile)
+				outfile.close()
+
+		imagesToDelete = glob.glob('./template.activity/images/*')
 		for imageToDelete in imagesToDelete:
-			os.remove(imageToDelete)
-		
+				os.remove(imageToDelete)
+
 		for itemToAdd in itemsToCopy:
-			if itemToAdd['type'] == "image":
-				pixbuf = itemToAdd['value'].get_pixbuf()
-				pixbuf.save('./sugar-helloworld.activity/images/' + itemToAdd['fileName'], itemToAdd['fileType'])	 				
+				if itemToAdd['type'] == "image":
+						pixbuf = itemToAdd['value'].get_pixbuf()
+						pixbuf.save('./template.activity/images/' + itemToAdd['fileName'], itemToAdd['fileType'])
+		activityName = self.title_entry.entry.get_text()
 
+		#write activity info
+		activityInfoData = []
+		#tag
+		activityInfoData.append("[Activity]")
+		#name
+		activityInfoData.append("name = " + activityName)
+		#version
+		activityInfoData.append("activity_version = 1")
+		#bundel_id
+		activityNameSpacesLess = activityName.replace(" ", "")
+		self.getLogger().debug(activityNameSpacesLess)
+		activityInfoData.append("bundle_id = org.sugarlabs." + activityNameSpacesLess)
+		#exec
+		activityInfoData.append("exec = sugar-activity homeworkviewer.HomeWorkViewer")
+		#icon
+		activityInfoData.append("icon = activity-helloworld")
+		#lincense
+		activityInfoData.append("license = GPLv2+")
+		with open('./template.activity/activity/activity.info', 'w') as infofile:
+				infofile.truncate()
+				for infoEntry in activityInfoData:
+						infofile.write(infoEntry + "\n")
+				infofile.close()
 
-		#self.getLogger().debug(self.get_activity_root() + '/instance/' + 'prueba.xo' )	
-		zipf = zipfile.ZipFile(self.get_activity_root() + '/instance/' + 'HomeWorkViewer.activity.xo', 'w')								
-		self.zipdir('sugar-helloworld.activity/', zipf)
-    		zipf.close()		
-		
+		#self.getLogger().debug(self.get_activity_root() + '/instance/' + 'prueba.xo' ) 
+		zipf = zipfile.ZipFile(self.get_activity_root() + '/instance/' + activityNameSpacesLess + '.activity.xo', 'w')                                             
+		os.rename("./template.activity/", activityNameSpacesLess + '.activity')
+		self.zipdir(activityNameSpacesLess + '.activity', zipf)
+		zipf.close()
+		os.rename( activityNameSpacesLess + '.activity',"./template.activity/")
+
 		file_dsobject = datastore.create()
-		file_dsobject.metadata['title'] = "HomeWorkViewer.activity.xo"
+		file_dsobject.metadata['title'] = activityNameSpacesLess + '.activity.xo'
 		file_dsobject.metadata['mime_type'] = "application/vnd.olpc-sugar"
-		file_path = os.path.join(self.get_activity_root(), 'instance', "HomeWorkViewer.activity.xo")
+		file_path = os.path.join(self.get_activity_root(), 'instance', activityNameSpacesLess + '.activity.xo')
 		file_dsobject.set_file_path(file_path)
-		datastore.write(file_dsobject)	
+		datastore.write(file_dsobject)
 
 
 		self.getLogger().debug(theJson)
