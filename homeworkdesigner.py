@@ -152,11 +152,6 @@ class HomeWorkDesigner(activity.Activity):
 		self._logger = logging.getLogger('home-work-designer-activity')
 		self._logger.setLevel(logging.DEBUG)
 		
-		'''Obtenemos el JSON de la Actividad'''
-		'''json_data=open('json.txt')
-		self.activity = json.load(json_data, object_hook=lambda d: namedtuple('Activity', d.keys())(*d.values()))
-		json_data.close()'''
-
 		"""Set up the HelloWorld activity."""
 		activity.Activity.__init__(self, handle)
 
@@ -190,24 +185,33 @@ class HomeWorkDesigner(activity.Activity):
 		self.buttonNext.set_tooltip(_('Siguiente'))
 		self.buttonNext.connect("clicked", self.nextButtonCallBack)
 		toolbar_box.toolbar.insert(self.buttonNext, 3)
-
-		toolbar_box.toolbar.insert_space(4)
-
 		
+		labelItem = gtk.ToolItem() 
+		self.labelExercisePosition = gtk.Label("")
+		labelItem.add(self.labelExercisePosition)
+		toolbar_box.toolbar.insert(labelItem, 4)
+	
+
+		separator2 = gtk.SeparatorToolItem()
+                separator2.props.draw = False
+                separator2.set_expand(True)
+                toolbar_box.toolbar.insert(separator2, 5)
+                separator2.show()
+	
 		self.newButton = ToolButton('add')
 		self.newButton.set_tooltip(_('Nuevo Ejercicio'))
 		self.newButton.connect("clicked", self.newExerciseCallBack)
-		toolbar_box.toolbar.insert(self.newButton, 5)
+		toolbar_box.toolbar.insert(self.newButton, 6)
 	
 		self.deleteButton = ToolButton('edit-delete')
 		self.deleteButton.set_tooltip(_('Borrar Ejercicio'))
 		self.deleteButton.connect("clicked", self.buttonDeleteExerciseCallBack)
-		toolbar_box.toolbar.insert(self.deleteButton, 6)
+		toolbar_box.toolbar.insert(self.deleteButton, 7)
 		
 		self.exportButton = ToolButton('document-save')
 		self.exportButton.set_tooltip(_('Exportar Ejercicio'))
 		self.exportButton.connect("clicked", self.exportExerciseCallBack)
-		toolbar_box.toolbar.insert(self.exportButton, 7)
+		toolbar_box.toolbar.insert(self.exportButton, 8)
 	
 		stop_button = StopButton(self)
 		toolbar_box.toolbar.insert(stop_button, -1)
@@ -247,7 +251,10 @@ class HomeWorkDesigner(activity.Activity):
                         	self.buttonNext.set_sensitive(False)
                         else:
                                 self.buttonNext.set_sensitive(True)
-	
+		if self.amountExercises > 0 :
+			self.labelExercisePosition.set_text( str(self.currentExerciseIndex + 1) + " of " + str(self.amountExercises) )
+		else:					
+			self.labelExercisePosition.set_text("")
 	def newExerciseCallBack(self, button, *args):
 		self.getLogger().debug("inside to newExerciseCallBack")
 		dialogExercise = ModalWindowSelectExercise(self)
@@ -283,15 +290,9 @@ class HomeWorkDesigner(activity.Activity):
 		self.amountExercises = self.amountExercises - 1
 		
 
-		if self.amountExercises != 1:
-			
-			if self.currentExerciseIndex == (self.amountExercises - 1):
-				self.getLogger().debug("Inside to: if self.currentExerciseIndex == (self.amountExercises - 1):")
-				self.vBoxMain.get_children()[self.currentExerciseIndex - 1].show_all()
-			else:
-				self.getLogger().debug("inside to: Else")
-				self.vBoxMain.get_children()[self.currentExerciseIndex + 1].show_all()
-		
+		if self.amountExercises > 0:
+			self.vBoxMain.get_children()[self.currentExerciseIndex].show_all()
+
 		self.manageNevegationButtons()
 		self.getLogger().debug("exit from buttonDeleteExercise")		
 
