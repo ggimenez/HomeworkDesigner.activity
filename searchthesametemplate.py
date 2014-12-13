@@ -166,6 +166,7 @@ class SearchTheSameTemplate():
                 elif itemType == "image":
                         itemCopy = gtk.image_new_from_pixbuf(item.get_pixbuf())
 			itemCopy.imageName = args['imageName']
+			itemCopy.imageType = args['imageType']
                 return itemCopy
 
 
@@ -235,10 +236,12 @@ class SearchTheSameTemplate():
                 theExerciseJson['codeType'] = 3
                 theExerciseJson['items'] = []
                 itemsToCopy = []
-                for payload in self.payloads:
+                if len(self.payloads) < 8:
+			return (None, None, False, "All items must be filled")
+		for payload in self.payloads:
                         self.mainWindows.getLogger().debug("Hframe child: ")
                         theExerciseJson['items'].append(self.parsePayloadToJson(payload, itemsToCopy))
-                return (theExerciseJson, itemsToCopy)
+                return (theExerciseJson, itemsToCopy, True, None)
 
         def parsePayloadToJson(self, payload, itemsToCopy):
                 self.mainWindows.getLogger().debug(" Inside to parseToJson")

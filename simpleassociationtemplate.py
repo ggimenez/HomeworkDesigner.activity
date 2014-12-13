@@ -121,7 +121,7 @@ class SimpleAssociationTemplate():
 				item['option'] = self.parsePayloadToJson(payloadOption, itemsToCopy)
 				item['correspondence'] = self.parsePayloadToJson(payloadCorrespondence, itemsToCopy)
 				theExerciseJson['items'].append(item)
-		return (theExerciseJson, itemsToCopy)				
+		return (theExerciseJson, itemsToCopy, True, None)				
 								
 	def parsePayloadToJson(self, payload, itemsToCopy):
 		self.mainWindows.getLogger().debug(" Inside to parseToJson")

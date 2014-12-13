@@ -56,6 +56,7 @@ class FindTheDifferentTemplate():
 		elif itemType == "image":		
 			itemCopy = gtk.image_new_from_pixbuf(item.get_pixbuf())
 			itemCopy.imageName = args['imageName']
+			itemCopy.imageType = args['imageType']
 		return itemCopy	
 		
 	def selectionCallBack(self,eventBox, *args):
@@ -164,7 +165,7 @@ class FindTheDifferentTemplate():
                                 item['equal'] = self.parsePayloadToJson(payloadEqual, itemsToCopy)
                                 item['different'] = self.parsePayloadToJson(payloadDifferent, itemsToCopy)
                                 theExerciseJson['items'].append(item)
-                return (theExerciseJson, itemsToCopy)
+                return (theExerciseJson, itemsToCopy, True, None)
 
 	def parsePayloadToJson(self, payload, itemsToCopy):
                 self.mainWindows.getLogger().debug(" Inside to parseToJson")

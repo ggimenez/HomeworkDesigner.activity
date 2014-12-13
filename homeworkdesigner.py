@@ -52,6 +52,9 @@ import zipfile
 from sugar.datastore import datastore
 import glob
 
+from sugar.graphics.alert import ConfirmationAlert
+from sugar.graphics.alert import NotifyAlert
+
 class ModalWindowSelectExercise:
 
 	def __init__ (self, parent):
@@ -278,10 +281,14 @@ class HomeWorkDesigner(activity.Activity):
 		self.manageNevegationButtons()
 	
 	def buttonDeleteExerciseCallBack(self, button, *args):
+		self._alert_confirmation(self.deleteExerciseCallBack, "Remove exercise", "Are you sure ?")		
+	
+	def deleteExerciseCallBack(self):
 		self.getLogger().debug("inside to buttonDeleteExercise")
 		self.getLogger().debug(self.amountExercises)
 		self.getLogger().debug(self.currentExerciseIndex)
 		self.getLogger().debug(self.vBoxMain.get_children())	
+				
 
 		windowToDelete = self.vBoxMain.get_children()[self.currentExerciseIndex]
                 self.vBoxMain.remove(windowToDelete)
@@ -308,8 +315,11 @@ class HomeWorkDesigner(activity.Activity):
 		theJson["name"] = "JSON de prueba"
 		theJson["exercises"] = []
 		itemsToCopy = []
-		for exerciseWindow in allExerciseWindows:
-				exerciseJson, itemsToCopyAux = exerciseWindow.exerciseInstance.parseToJson()
+		for index, exerciseWindow in enumerate( allExerciseWindows ):
+				exerciseJson, itemsToCopyAux, validExercise , errorMessage = exerciseWindow.exerciseInstance.parseToJson()
+				if validExercise == False:
+					self._alert_notify("Export as activity", "Error in the exercise Number " + str(index + 1) + " : " + errorMessage)
+					return 
 				itemsToCopy = itemsToCopy + itemsToCopyAux
 				theJson['exercises'].append(exerciseJson)
 
@@ -365,7 +375,8 @@ class HomeWorkDesigner(activity.Activity):
 		file_path = os.path.join(self.get_activity_root(), 'instance', activityNameSpacesLess + '.activity.xo')
 		file_dsobject.set_file_path(file_path)
 		datastore.write(file_dsobject)
-
+		
+		self._alert_notify("Export as activity", "It has been exported successfully")
 
 		self.getLogger().debug(theJson)
 		self.getLogger().debug(itemsToCopy)
@@ -404,6 +415,35 @@ class HomeWorkDesigner(activity.Activity):
 		self.manageNevegationButtons()
 		newWindowExerciseTemplate.show_all()
 		self.getLogger().debug("exit from buttonDeleteExercise")
+	
+	def _alert_confirmation(self, callback, title, message):
+        	alert = ConfirmationAlert()
+        	alert.props.title= title
+        	alert.props.msg = message
+        	alert.connect('response', self._alert_response_cb, callback)
+        	self.add_alert(alert)
+
+	def _alert_response_cb(self, alert, *args):
+        	self.getLogger().debug(args)
+		#remove the alert from the screen, since either a response button
+        	#was clicked or there was a timeout
+        	self.remove_alert(alert)
+		response_id = args[0]
+		callback = args[1]		
+		
+        	#Do any work that is specific to the type of button clicked.
+        	if response_id is gtk.RESPONSE_OK:
+        		callback()
+	
+	def _alert_notify(self, title, message):
+        	#Notice that for a NotifyAlert, you pass the number of seconds in
+        	#which to notify. By default, this is 5.
+        	alert = NotifyAlert(10)
+        	alert.props.title= title
+        	alert.props.msg = message
+        	alert.connect('response', self._alert_response_cb)
+        	self.add_alert(alert)
+	
  	
 			
 	def read_file(self, tmp_file):
