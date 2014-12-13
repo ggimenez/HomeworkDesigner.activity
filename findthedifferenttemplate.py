@@ -28,7 +28,7 @@ class FindTheDifferentTemplate():
 		
 		indexCurrentEventBox = self.currentHBoxItems.child_get_property(self.currentEventBoxSelected, "position")
 		
-		if indexCurrentEventBox == self.currentDifferentIndex:
+		if indexCurrentEventBox == self.currentDifferentIndex and self.isFirstClick() == False:
 			itemCopy = self.copyItem(item, itemType, args)
 			oldItem = self.currentEventBoxSelected.get_children()[0]
                         self.currentEventBoxSelected.remove(oldItem)
@@ -45,6 +45,13 @@ class FindTheDifferentTemplate():
 					eventBox.add(itemCopy)
 					eventBox.filled = True
                 			eventBox.show_all()
+	def isFirstClick(self):
+		response = True
+		for theEventBox in self.currentHBoxItems.get_children():
+			if theEventBox.filled == True:
+				response = False
+				break
+		return response			
 	
 	def copyItem(self, item, itemType, args):
 		self.mainWindows.getLogger().debug("Inside to copyItem:")
