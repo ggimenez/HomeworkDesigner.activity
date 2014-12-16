@@ -24,8 +24,18 @@ SELECTED_COLOUR = gtk.gdk.Color("#FFFF00")
 
 
 class SimpleAssociationTemplate():
+
+	def createPayloadFromResume(self, jsonItem):
+		if jsonItem["filled"] is True:
+                	if jsonItem['type'] == 'letter':
+                        	payloadOptionResume = gtk.Label( jsonItem['value'] )
+                        elif  jsonItem['type'] == 'image':
+                        	payloadOptionResume = gtk.Image()
+                                payloadOptionResume.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(\
+					jsonItem['value'] ).scale_simple(300, 200, 2))
+
 	
-	def getWindow(self, mainWindows):
+	def getWindow(self, mainWindows, jsonState):
 		
 		self.mainWindows = mainWindows
 		windowSimpleAssociation = gtk.ScrolledWindow()
@@ -41,21 +51,26 @@ class SimpleAssociationTemplate():
 		frameExercises.add(hBoxExercises)
 	
 		windowSimpleAssociation.exerciseInstance = self
-
-	
+		
 		itemCount = 1
 		while itemCount <= 5:
+			payloadOptionResume = None
+			payloadCorrespondenceResume = None
+			if jsonState is not None:
+				payloadOptionResume = self.createPayloadFromResume(jsonState['items'][itemCount - 1]['option'])
+				payloadCorrespondenceResume = self.createPayloadFromResume(jsonState['items'][itemCount - 1]['correspondence'])
+
 			
 			'''Options'''
-			eventBoxOption = self.createEventBox()
+			eventBoxOption = self.createEventBox(payloadOptionResume)
 			eventBoxOption.connect("button-press-event", self.itemSelectedCallBack)
 			self.addEventBoxToVBox(eventBoxOption, self.vBoxOptions)			
 			
 			'''Correspondences'''
-			eventBoxCorrespondence = self.createEventBox()
+			eventBoxCorrespondence = self.createEventBox(payloadCorrespondenceResume)
 			eventBoxCorrespondence.connect("button_press_event", self.itemSelectedCallBack)
 			self.addEventBoxToVBox(eventBoxCorrespondence, self.vBoxCorrespondences)
-			#self.correspondencesSelectionState[index] = {"selected": -1, "pair": correspondencesList[index]['indexPair'], "colour": None}	
+	
 			itemCount = itemCount + 1
 			
 		hBoxExercises.pack_start(self.vBoxOptions, False,True,50)
@@ -93,18 +108,23 @@ class SimpleAssociationTemplate():
 		frameEventBox.add(eventBox)
 		vBox.pack_start(frameEventBox, False,False,0)
 		
-	def createEventBox(self):
+	def createEventBox(self, payload):
 		eventBox = gtk.EventBox()
 		eventBox.modify_bg(gtk.STATE_NORMAL, eventBox.get_colormap().alloc_color("white"))
-		blankLabel = gtk.Label("")
-		blankLabel.modify_font(pango.FontDescription("Courier Bold 70"))
-		eventBox.add(blankLabel)
-		eventBox.set_size_request(LETTERS_SCALE[0], LETTERS_SCALE[1])	        
-		eventBox.filled = False
+		
+		if payload is None:
+			blankLabel = gtk.Label("")
+			blankLabel.modify_font(pango.FontDescription("Courier Bold 70"))
+			eventBox.add(blankLabel)
+			eventBox.set_size_request(LETTERS_SCALE[0], LETTERS_SCALE[1])	        
+			eventBox.filled = False
+		else:
+			eventBox.add(payload)
+			eventBox.filled = True	
 			
 		return eventBox
 				
-	def parseToJson(self):
+	def parseToJson(self, isStop, pathToSaveItemsStop):
 		theExerciseJson = {}
                 theExerciseJson['codeType'] = 1
                 theExerciseJson['name'] = "Asociacion Simple" 
@@ -114,27 +134,39 @@ class SimpleAssociationTemplate():
 
 			theEventBoxOption = option.get_children()[0]			
 			theEventBoxCorrespondence = self.vBoxCorrespondences.get_children()[index].get_children()[0]
-			if theEventBoxOption.filled == True and theEventBoxCorrespondence.filled == True:
+			if (theEventBoxOption.filled == True and theEventBoxCorrespondence.filled == True) or isStop:
 				payloadOption = theEventBoxOption.get_children()[0]
 				payloadCorrespondence = theEventBoxCorrespondence.get_children()[0]
 				item = {}
-				item['option'] = self.parsePayloadToJson(payloadOption, itemsToCopy)
-				item['correspondence'] = self.parsePayloadToJson(payloadCorrespondence, itemsToCopy)
+				item['option'] = self.parseItemToJson(payloadOption, itemsToCopy, isStop, theEventBoxOption.filled, \
+						pathToSaveItemsStop)
+				item['correspondence'] = self.parseItemToJson(payloadCorrespondence, itemsToCopy, theEventBoxCorrespondence, \
+						theEventBoxCorrespondence.filled, pathToSaveItemsStop)
 				theExerciseJson['items'].append(item)
 		return (theExerciseJson, itemsToCopy, True, None)				
 								
-	def parsePayloadToJson(self, payload, itemsToCopy):
+	def parseItemToJson(self, payload, itemsToCopy, isStop, eventBoxFilled, pathToSaveItemsStop):
 		self.mainWindows.getLogger().debug(" Inside to parseToJson")
 		theJson = {}
 		self.mainWindows.getLogger().debug(payload.__class__.__name__)
-		if payload.__class__.__name__ == "Label":
-			theJson['type']	= "letter"
-			theJson["value"] = payload.get_text()
-		if payload.__class__.__name__ == "Image":
-			theJson['type'] = "image"
-			theJson['value'] = "./images/" + payload.imageName
-			itemsToCopy.append({"type":"image", "value":payload, "fileName":payload.imageName, "fileType":payload.imageType})
+		if isStop:
+			theJson['filled'] = filled		
+			if filled:
+				self.parsePayloadToJson(payload, pathToSaveItemsStop, theJson)	
+		else:
+			self.parsePayloadToJson(payload, "./images/", theJson)		
 		return theJson							
+	
+	def parsePayloadToJson(self, payload ,itemsPath, theJson):
+		if payload.__class__.__name__ == "Label":
+                	theJson['type'] = "letter"
+                        theJson["value"] = payload.get_text()
+                if payload.__class__.__name__ == "Image":
+                	theJson['type'] = "image"
+                        theJson['value'] = itemsPath + payload.imageName
+                        itemsToCopy.append({"type":"image", "value":payload, "fileName":payload.imageName, "fileType":payload.imageType})
+
+	
 
 	def setAllAvailableSelectionColour(self):
 		for colour in COLOURS_ASSOCIATION:
@@ -155,7 +187,7 @@ class SimpleAssociationTemplate():
 	def fakeSelection(self, frame):
 		frame.modify_bg(gtk.STATE_NORMAL, SELECTED_COLOUR)
 	
-	def fakeUnselection(self, frame)	:
+	def fakeUnselection(self, frame):
 		frame.modify_bg(gtk.STATE_NORMAL, frame.get_colormap().alloc_color('white'))
 	
 	def changeBackgroundColour(self, eventBox, colour):
@@ -163,4 +195,10 @@ class SimpleAssociationTemplate():
 		
 	def setSelectionStateColour(self,selectionState, index, colour):
 		selectionState[index]['colour'] = colour
-	
+
+
+
+						
+		
+					
+			

@@ -55,6 +55,9 @@ import glob
 from sugar.graphics.alert import ConfirmationAlert
 from sugar.graphics.alert import NotifyAlert
 
+import pickle
+
+
 class ModalWindowSelectExercise:
 
 	def __init__ (self, parent):
@@ -141,7 +144,7 @@ class ModalWindowSelectExercise:
 		#self.parent._logger.debug(args)
 		codeExerciseType = args[1]['code']
 		self.modalWindow.destroy()
-		self.parent.createNewExerciseType(codeExerciseType)
+		self.parent.createNewExerciseType(codeExerciseType, None)
 		
 		
 	def show(self):
@@ -155,6 +158,7 @@ class HomeWorkDesigner(activity.Activity):
 		self._logger = logging.getLogger('home-work-designer-activity')
 		self._logger.setLevel(logging.DEBUG)
 		
+		self._logger.debug("Inside to HomeWorkViewer, __init__ method")	
 		"""Set up the HelloWorld activity."""
 		activity.Activity.__init__(self, handle)
 
@@ -316,7 +320,7 @@ class HomeWorkDesigner(activity.Activity):
 		theJson["exercises"] = []
 		itemsToCopy = []
 		for index, exerciseWindow in enumerate( allExerciseWindows ):
-				exerciseJson, itemsToCopyAux, validExercise , errorMessage = exerciseWindow.exerciseInstance.parseToJson()
+				exerciseJson, itemsToCopyAux, validExercise , errorMessage = exerciseWindow.exerciseInstance.parseToJson(False, None)
 				if validExercise == False:
 					self._alert_notify("Export as activity", "Error in the exercise Number " + str(index + 1) + " : " + errorMessage)
 					return 
@@ -381,14 +385,14 @@ class HomeWorkDesigner(activity.Activity):
 		self.getLogger().debug(theJson)
 		self.getLogger().debug(itemsToCopy)
 
-	def createNewExerciseType(self, codeExerciseType):
+	def createNewExerciseType(self, codeExerciseType, jsonResume):
 		self.getLogger().debug("inside to createNewExerciseType")
 		newExerciseTemplate = None
 		newWindowExerciseTemplate = None
 		if codeExerciseType == 1:
 			self._logger.debug("Inside : if codeExerciseType == 1")
 			newExerciseTemplate = SimpleAssociationTemplate()
-			newWindowExerciseTemplate = newExerciseTemplate.getWindow(self)
+			newWindowExerciseTemplate = newExerciseTemplate.getWindow(self, jsonResume)
 			self._logger.debug("After : ewWindowExerciseTemplate = newExerciseTemplate.getWindow(self)")
 		elif codeExerciseType == 2:
 			newExerciseTemplate = FindTheDifferentTemplate()
@@ -415,7 +419,8 @@ class HomeWorkDesigner(activity.Activity):
 		self.manageNevegationButtons()
 		newWindowExerciseTemplate.show_all()
 		self.getLogger().debug("exit from buttonDeleteExercise")
-	
+		
+		
 	def _alert_confirmation(self, callback, title, message):
         	alert = ConfirmationAlert()
         	alert.props.title= title
@@ -446,8 +451,53 @@ class HomeWorkDesigner(activity.Activity):
 	
  	
 			
-	def read_file(self, tmp_file):
-		pass
+	def read_file(self, tmp_file_path):
+		self.getLogger().debug("Inside to read_file")
+		self.getLogger().debug(tmp_file_path)
+		tmpFile = open(tmp_file_path, 'r')
+        	theJsonState = json.load(tmpFile)
+               	self.getLogger().debug(theJsonState) 
+		
+		self.resumeActivity(theJsonState)
+		tmpFile.close()
 
-	def write_file(self, tmp_file):
-		pass
+
+	def write_file(self, tmp_file_path):
+		self.getLogger().debug("Inside to write_file")
+		self.getLogger().debug(tmp_file_path)
+		#self.getLogger().debug(self.metadata.get_dictionary())
+		tmpFile = open(tmp_file_path, 'w')
+		self.saveActivityState(tmpFile)
+		tmpFile.close()
+	
+	def saveActivityState(self, tmpFile):
+		self.getLogger().debug("inside to saveActivityState")
+		allExerciseWindows = self.vBoxMain.get_children()
+                theJson = {}
+                theJson["name"] = "JSON de prueba"
+                theJson["exercises"] = []
+                itemsToCopy = []
+		activityName = self.metadata.get('title')
+                for index, exerciseWindow in enumerate( allExerciseWindows ):
+                                exerciseJson, itemsToCopyAux = exerciseWindow.exerciseInstance.parseStateToJson(True, \
+								self.get_activity_root() + '/data/' + activityName)                
+                                
+				itemsToCopy = itemsToCopy + itemsToCopyAux
+                                theJson['exercises'].append(exerciseJson)
+
+		if not os.path.exists(self.get_activity_root() + '/data/' + activityName):
+    			os.makedirs(self.get_activity_root() + '/data/' + activityName)
+		
+		for itemToAdd in itemsToCopy:
+                	if itemToAdd['type'] == "image":
+                        	pixbuf = itemToAdd['value'].get_pixbuf()
+                                pixbuf.save(self.get_activity_root() + '/data/' + activityName + '/' + itemToAdd['fileName'], itemToAdd['fileType'])
+		self.getLogger().debug(theJson)
+		json.dump(theJson, tmpFile)
+
+	def resumeActivity(self, jsonState):
+		self.amountExercises = len(jsonState['exercises'])
+		for exerciseJson in jsonState['exercises']:
+			self.createNewExerciseType(exerciseJson['codeType'], exerciseJson)
+					
+
