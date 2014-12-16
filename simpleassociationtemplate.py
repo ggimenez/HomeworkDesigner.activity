@@ -26,21 +26,34 @@ SELECTED_COLOUR = gtk.gdk.Color("#FFFF00")
 class SimpleAssociationTemplate():
 
 	def createPayloadFromResume(self, jsonItem):
+		self.mainWindows.getLogger().debug("Inside to createPayloadFromResume")
+		self.mainWindows.getLogger().debug(jsonItem)
+		payloadResume = None
 		if jsonItem["filled"] is True:
                 	if jsonItem['type'] == 'letter':
-                        	payloadOptionResume = gtk.Label( jsonItem['value'] )
+                        	payloadResume = gtk.Label( jsonItem['value'] )
+				payloadResume.modify_font(pango.FontDescription("Courier Bold 60"))
+
                         elif  jsonItem['type'] == 'image':
-                        	payloadOptionResume = gtk.Image()
-                                payloadOptionResume.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(\
-					jsonItem['value'] ).scale_simple(300, 200, 2))
+                        	payloadResume = gtk.Image()
+                                payloadResume.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(\
+					jsonItem['value'] ).scale_simple(IMAGES_SCALE[0], IMAGES_SCALE[1], 2))
+				payloadResume.imageName = jsonItem['fileName']
+				payloadResume.imageType = jsonItem['fileType']
+		return payloadResume
 
 	
 	def getWindow(self, mainWindows, jsonState):
-		
+	        
+
+			
 		self.mainWindows = mainWindows
 		windowSimpleAssociation = gtk.ScrolledWindow()
 		windowSimpleAssociation.exerciseName =  "SimpleAssociationTemplate"		
-				
+		
+		self.mainWindows.getLogger().debug("Inside to SimpleAssociationTemplate, getWindow method")
+		self.mainWindows.getLogger().debug(jsonState)
+		
 	
 		vBoxWindows = gtk.VBox(False, 5)
 		hBoxExercises = gtk.HBox(True, 50)
@@ -140,31 +153,40 @@ class SimpleAssociationTemplate():
 				item = {}
 				item['option'] = self.parseItemToJson(payloadOption, itemsToCopy, isStop, theEventBoxOption.filled, \
 						pathToSaveItemsStop)
-				item['correspondence'] = self.parseItemToJson(payloadCorrespondence, itemsToCopy, theEventBoxCorrespondence, \
+				item['correspondence'] = self.parseItemToJson(payloadCorrespondence, itemsToCopy, isStop, \
 						theEventBoxCorrespondence.filled, pathToSaveItemsStop)
 				theExerciseJson['items'].append(item)
-		return (theExerciseJson, itemsToCopy, True, None)				
+		response = (theExerciseJson, itemsToCopy, True, None)	
+		if isStop:
+			response = (theExerciseJson, itemsToCopy)	
+		return response				
 								
 	def parseItemToJson(self, payload, itemsToCopy, isStop, eventBoxFilled, pathToSaveItemsStop):
 		self.mainWindows.getLogger().debug(" Inside to parseToJson")
 		theJson = {}
-		self.mainWindows.getLogger().debug(payload.__class__.__name__)
-		if isStop:
-			theJson['filled'] = filled		
-			if filled:
-				self.parsePayloadToJson(payload, pathToSaveItemsStop, theJson)	
+		#self.mainWindows.getLogger().debug(eventBoxFilled)
+		if isStop == True:
+			#self.mainWindows.getLogger().debug("Inside of: If isStop == True")
+			theJson['filled'] = eventBoxFilled		
+			if eventBoxFilled == True:
+				#self.mainWindows.getLogger().debug("Inside of in: if eventBoxFilled == True")
+				self.parsePayloadToJson(payload, pathToSaveItemsStop, theJson, itemsToCopy, isStop)	
 		else:
-			self.parsePayloadToJson(payload, "./images/", theJson)		
+			#self.mainWindows.getLogger().debug("Inside in: else")
+			self.parsePayloadToJson(payload, "./images", theJson, itemsToCopy, isStop)		
 		return theJson							
 	
-	def parsePayloadToJson(self, payload ,itemsPath, theJson):
+	def parsePayloadToJson(self, payload ,itemsPath, theJson, itemsToCopy, isStop):
 		if payload.__class__.__name__ == "Label":
                 	theJson['type'] = "letter"
                         theJson["value"] = payload.get_text()
                 if payload.__class__.__name__ == "Image":
                 	theJson['type'] = "image"
-                        theJson['value'] = itemsPath + payload.imageName
-                        itemsToCopy.append({"type":"image", "value":payload, "fileName":payload.imageName, "fileType":payload.imageType})
+                        theJson['value'] = itemsPath + "/" + payload.imageName
+                        if isStop:
+				theJson['fileName'] = payload.imageName
+				theJson['fileType'] = payload.imageType
+			itemsToCopy.append({"type":"image", "value":payload, "fileName":payload.imageName, "fileType":payload.imageType})
 
 	
 
@@ -195,10 +217,4 @@ class SimpleAssociationTemplate():
 		
 	def setSelectionStateColour(self,selectionState, index, colour):
 		selectionState[index]['colour'] = colour
-
-
-
-						
-		
-					
 			

@@ -438,18 +438,19 @@ class HomeWorkDesigner(activity.Activity):
 		
         	#Do any work that is specific to the type of button clicked.
         	if response_id is gtk.RESPONSE_OK:
-        		callback()
-	
+        		callback()	
+
 	def _alert_notify(self, title, message):
         	#Notice that for a NotifyAlert, you pass the number of seconds in
         	#which to notify. By default, this is 5.
         	alert = NotifyAlert(10)
         	alert.props.title= title
         	alert.props.msg = message
-        	alert.connect('response', self._alert_response_cb)
+        	alert.connect('response', self._alert_response_cb, self.alert_notify_callback)
         	self.add_alert(alert)
 	
- 	
+ 	def alert_notify_callback(self):
+		pass
 			
 	def read_file(self, tmp_file_path):
 		self.getLogger().debug("Inside to read_file")
@@ -479,7 +480,7 @@ class HomeWorkDesigner(activity.Activity):
                 itemsToCopy = []
 		activityName = self.metadata.get('title')
                 for index, exerciseWindow in enumerate( allExerciseWindows ):
-                                exerciseJson, itemsToCopyAux = exerciseWindow.exerciseInstance.parseStateToJson(True, \
+                                exerciseJson, itemsToCopyAux = exerciseWindow.exerciseInstance.parseToJson(True, \
 								self.get_activity_root() + '/data/' + activityName)                
                                 
 				itemsToCopy = itemsToCopy + itemsToCopyAux
@@ -496,7 +497,6 @@ class HomeWorkDesigner(activity.Activity):
 		json.dump(theJson, tmpFile)
 
 	def resumeActivity(self, jsonState):
-		self.amountExercises = len(jsonState['exercises'])
 		for exerciseJson in jsonState['exercises']:
 			self.createNewExerciseType(exerciseJson['codeType'], exerciseJson)
 					
