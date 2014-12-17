@@ -15,6 +15,12 @@ import copy
 
 from modalwindowselectItem import ModalWindowSelectItem
 
+''' Scales '''
+IMAGES_SCALE = [100, 100]
+LETTERS_SCALE = [100, 100]
+
+
+
 class FindTheDifferentTemplate():
 	
 	def changeBackgroundColour(self, eventBox, colour):
@@ -24,11 +30,12 @@ class FindTheDifferentTemplate():
 	def modalWindowReturn(self, item, itemType, args):
                 self.mainWindows.getLogger().debug("Inside a modalWindowReturn")
                 self.mainWindows.getLogger().debug(item)
+		#self.mainWindows.getLogger().debug(self.isFirstClick())
 		copyMethod = None	
 		
 		indexCurrentEventBox = self.currentHBoxItems.child_get_property(self.currentEventBoxSelected, "position")
 		
-		if indexCurrentEventBox == self.currentDifferentIndex and self.isFirstClick() == False:
+		if indexCurrentEventBox == self.currentDifferentIndex and not self.isFirstClick() :
 			itemCopy = self.copyItem(item, itemType, args)
 			oldItem = self.currentEventBoxSelected.get_children()[0]
                         self.currentEventBoxSelected.remove(oldItem)
@@ -46,8 +53,10 @@ class FindTheDifferentTemplate():
 					eventBox.filled = True
                 			eventBox.show_all()
 	def isFirstClick(self):
+		self.mainWindows.getLogger().debug("Inside to isFirstClick")
 		response = True
 		for theEventBox in self.currentHBoxItems.get_children():
+			#self.mainWindows.getLogger().debug(theEventBox.filled)
 			if theEventBox.filled == True:
 				response = False
 				break
@@ -55,7 +64,7 @@ class FindTheDifferentTemplate():
 	
 	def copyItem(self, item, itemType, args):
 		self.mainWindows.getLogger().debug("Inside to copyItem:")
-		self.mainWindows.getLogger().debug(itemType)
+		#self.mainWindows.getLogger().debug(itemType)
 		itemCopy = None
 		if itemType == "text":
 			itemCopy = gtk.Label(item.get_text())
@@ -68,8 +77,9 @@ class FindTheDifferentTemplate():
 		
 	def selectionCallBack(self,eventBox, *args):
 		
-		self.mainWindows.getLogger().debug(args)
-		
+		self.mainWindows.getLogger().debug("Inside to selectionCallBack")
+		#self.mainWindows.getLogger().debug(eventBox.filled)		
+
 		dialogInsertNewItem = ModalWindowSelectItem(self.mainWindows, self)
                 dialogInsertNewItem.show()
 		self.currentEventBoxSelected = eventBox
@@ -77,17 +87,43 @@ class FindTheDifferentTemplate():
 		self.currentHBoxItems = args[2]
 
 	
-	def createEventBox(self):
-		eventBox = gtk.EventBox()
-		
-		label = gtk.Label("")
-		label.modify_font(pango.FontDescription("Courier Bold 40"))
-		eventBox.add(label)
-		self.changeBackgroundColour(eventBox, 'white')		
 
-		return eventBox
-		
-	def getWindow(self, mainWindows):
+	def createEventBox(self, payload):
+                eventBox = gtk.EventBox()
+                eventBox.modify_bg(gtk.STATE_NORMAL, eventBox.get_colormap().alloc_color("white"))
+
+                if payload is None:
+                        blankLabel = gtk.Label("")
+                        blankLabel.modify_font(pango.FontDescription("Courier Bold 70"))
+                        eventBox.add(blankLabel)
+                        eventBox.set_size_request(LETTERS_SCALE[0], LETTERS_SCALE[1])
+                        eventBox.filled = False
+                else:
+                        eventBox.add(payload)
+                        eventBox.filled = True
+
+                return eventBox
+
+
+	
+	def createPayloadFromResume(self, jsonItem):
+                self.mainWindows.getLogger().debug("Inside to createPayloadFromResume")
+                '''self.mainWindows.getLogger().debug(jsonItem)'''
+                payloadResume = None
+                if jsonItem["filled"] is True:
+                        if jsonItem['type'] == 'letter':
+                                payloadResume = gtk.Label( jsonItem['value'] )
+                                payloadResume.modify_font(pango.FontDescription("Courier Bold 60"))
+
+                        elif  jsonItem['type'] == 'image':
+                                payloadResume = gtk.Image()
+                                payloadResume.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(\
+                                        jsonItem['value'] ).scale_simple(IMAGES_SCALE[0], IMAGES_SCALE[1], 2))
+                                payloadResume.imageName = jsonItem['fileName']
+                                payloadResume.imageType = jsonItem['fileType']
+                return payloadResume
+	
+	def getWindow(self, mainWindows, jsonState):
 		
 		self.mainWindows = mainWindows
 			
@@ -114,14 +150,21 @@ class FindTheDifferentTemplate():
 			different = random.randint(0,until)
 			
 			while count <= until:	
-			
-				eventBox = self.createEventBox()	
+				payload = None
+				if jsonState is not None:
+					if count == different:
+						payload = self.createPayloadFromResume(jsonState['items'][index]['different'])
+					else:			
+						payload = self.createPayloadFromResume(jsonState['items'][index]['equal'])
+	
+				eventBox = self.createEventBox(payload)
+				#self.mainWindows.getLogger().debug(eventBox.filled)	
 				eventBox.connect("button-press-event", self.selectionCallBack, different, hBox)
 				if count == different:
 					eventBox.different = True
 				else:
 					eventBox.different = False				
-				eventBox.filled = False
+			
 				hBox.pack_start(eventBox, False,True,0)
 				count = count + 1
 			
@@ -135,28 +178,38 @@ class FindTheDifferentTemplate():
 		
 		return windowFindTheDifferent
 	
-	def validateFilled(self, hBox):
+	def validateFilled(self, hBox, isStop):
 		eventBoxEqual = None
 		eventBoxDifferent = None
 		foundEqualFilled = False
 		foundDifferentFilled = False
 		response = False
-		for eventBox in hBox.get_children():				
-			if eventBox.different == True:
-				if eventBox.filled == True:
-					eventBoxDifferent = eventBox
-					foundDifferentFilled = True
+		
+		if isStop == False:
+			for eventBox in hBox.get_children():				
+				if eventBox.different == True:
+					if eventBox.filled == True:
+						eventBoxDifferent = eventBox
+						foundDifferentFilled = True
+					else:
+						break
 				else:
-					break
-			else:
-				if eventBox.filled == True:
-					foundEqualFilled = True
+					if eventBox.filled == True:
+						foundEqualFilled = True
+				  		eventBoxEqual = eventBox
+			if foundEqualFilled is True and foundDifferentFilled is True:
+				response = True
+		else:
+			for eventBox in hBox.get_children():				
+				if eventBox.different == True:
+					eventBoxDifferent = eventBox
+				else:
 				  	eventBoxEqual = eventBox
-		if foundEqualFilled is True and foundDifferentFilled is True:
-			response = True
+				
+
 		return (response, eventBoxEqual, eventBoxDifferent)			
 
-	def parseToJson(self):
+	def parseToJson(self, isStop, pathToSaveItemsStop):
         	theExerciseJson = {}
                 theExerciseJson['codeType'] = 2
                 theExerciseJson['items'] = []
@@ -164,25 +217,56 @@ class FindTheDifferentTemplate():
                 for hFrame in self.vBoxExercises.get_children():
 			self.mainWindows.getLogger().debug("Hframe child: ")
 			self.mainWindows.getLogger().debug(hFrame.get_children()[0])
-			response, eventBoxEqual, eventBoxDifferent = self.validateFilled(hFrame.get_children()[0])			
-			if response is True:				                         
+			response, eventBoxEqual, eventBoxDifferent = self.validateFilled(hFrame.get_children()[0], isStop)			
+			if response is True or isStop:				                         
                                 payloadEqual = eventBoxEqual.get_children()[0]
                                 payloadDifferent = eventBoxDifferent.get_children()[0]
                                 item = {}
-                                item['equal'] = self.parsePayloadToJson(payloadEqual, itemsToCopy)
-                                item['different'] = self.parsePayloadToJson(payloadDifferent, itemsToCopy)
+                                item['equal'] = self.parseItemToJson(payloadEqual, itemsToCopy, isStop, eventBoxEqual.filled, pathToSaveItemsStop)
+                                item['different'] = self.parseItemToJson(payloadDifferent, itemsToCopy, isStop, eventBoxDifferent.filled, pathToSaveItemsStop)
                                 theExerciseJson['items'].append(item)
-                return (theExerciseJson, itemsToCopy, True, None)
+                response = (theExerciseJson, itemsToCopy, True, None)
+		if isStop == True:
+			response = (theExerciseJson, itemsToCopy)
 
-	def parsePayloadToJson(self, payload, itemsToCopy):
-                self.mainWindows.getLogger().debug(" Inside to parseToJson")
+		return response
+
+	def parseItemToJson(self, payload, itemsToCopy, isStop, eventBoxFilled, pathToSaveItemsStop):
+                self.mainWindows.getLogger().debug("inside to parseItemToJson")
+		'''self.mainWindows.getLogger().debug(payload)
+		self.mainWindows.getLogger().debug(itemsToCopy)
+		self.mainWindows.getLogger().debug(isStop)
+		self.mainWindows.getLogger().debug(eventBoxFilled)
+		self.mainWindows.getLogger().debug(pathToSaveItemsStop)'''
+
                 theJson = {}
-                self.mainWindows.getLogger().debug(payload.__class__.__name__)
-                if payload.__class__.__name__ == "Label":
+                #self.mainWindows.getLogger().debug(eventBoxFilled)
+                if isStop == True:
+                        #self.mainWindows.getLogger().debug("Inside of: If isStop == True")
+                        theJson['filled'] = eventBoxFilled
+                        if eventBoxFilled == True:
+                                #self.mainWindows.getLogger().debug("Inside of in: if eventBoxFilled == True")
+                                self.parsePayloadToJson(payload, pathToSaveItemsStop, theJson, itemsToCopy, isStop)
+                else:
+                        #self.mainWindows.getLogger().debug("Inside in: else")
+                        self.parsePayloadToJson(payload, "./images", theJson, itemsToCopy, isStop)
+                return theJson
+
+        def parsePayloadToJson(self, payload ,itemsPath, theJson, itemsToCopy, isStop):
+                self.mainWindows.getLogger().debug("inside to parsePayloadToJson")
+		'''self.mainWindows.getLogger().debug(payload)
+		self.mainWindows.getLogger().debug(itemsPath)
+		self.mainWindows.getLogger().debug(theJson)
+		self.mainWindows.getLogger().debug(itemsToCopy)
+		self.mainWindows.getLogger().debug(isStop)'''
+		if payload.__class__.__name__ == "Label":
                         theJson['type'] = "letter"
                         theJson["value"] = payload.get_text()
                 if payload.__class__.__name__ == "Image":
                         theJson['type'] = "image"
-                        theJson['value'] = "./images/" + payload.imageName
-			itemsToCopy.append({"type":"image", "value":payload, "fileName":payload.imageName, "fileType":payload.imageType})
-		return theJson	
+                        theJson['value'] = itemsPath + "/" + payload.imageName
+                        if isStop:
+                                theJson['fileName'] = payload.imageName
+                                theJson['fileType'] = payload.imageType
+                        itemsToCopy.append({"type":"image", "value":payload, "fileName":payload.imageName, "fileType":payload.imageType})
+	

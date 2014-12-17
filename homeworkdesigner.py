@@ -396,7 +396,7 @@ class HomeWorkDesigner(activity.Activity):
 			self._logger.debug("After : ewWindowExerciseTemplate = newExerciseTemplate.getWindow(self)")
 		elif codeExerciseType == 2:
 			newExerciseTemplate = FindTheDifferentTemplate()
-			newWindowExerciseTemplate = newExerciseTemplate.getWindow(self)		
+			newWindowExerciseTemplate = newExerciseTemplate.getWindow(self, jsonResume)		
 		elif codeExerciseType == 3:
 			newExerciseTemplate = SearchTheSameTemplate()
 			newWindowExerciseTemplate = newExerciseTemplate.getWindow(self)
