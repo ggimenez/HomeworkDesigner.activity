@@ -38,8 +38,7 @@ COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#808080"), "available":True}
 
 
 class SearchTheSameTemplate():	
-		
-	
+			
 		
 	def blankEventBox(self):
 		eventBox = gtk.EventBox()
@@ -48,8 +47,6 @@ class SearchTheSameTemplate():
 		blankLabel.modify_font(pango.FontDescription("Courier Bold 50"))
 		eventBox.add(blankLabel)
 		return eventBox
-	
-	
 		
 	def setAllAvailableSelectionColour(self):
 		for colour in COLOURS_ASSOCIATION:
@@ -64,12 +61,11 @@ class SearchTheSameTemplate():
 		COLOURS_ASSOCIATION[COLOURS_ASSOCIATION.index(colour)]['available'] = False
 	
 	
-	def fakeSelection(self, eventBox, colour):
-		
+	def fakeSelection(self, eventBox, colour):	
 		eventBox.modify_bg(gtk.STATE_NORMAL, colour['colour'])
 		return colour
 		
-	def fakeUnselection(self, eventBox)	:
+	def fakeUnselection(self, eventBox):
 		eventBox.modify_bg(gtk.STATE_NORMAL, eventBox.get_colormap().alloc_color('white'))
 		oldPayload = eventBox.get_children()[0]
 		eventBox.remove(oldPayload)
@@ -91,6 +87,8 @@ class SearchTheSameTemplate():
 		theMatrix = [[None] * columns for i in range(rows)]
 		
 		row = 0
+		itemIndex = [0,1,2,3,4,5,6,7]
+		currentItemIndex = 0
 		while row < rows :
 			column = 0
 			#self.mainWindows.getLogger().debug("row: %s" % row)
@@ -104,15 +102,16 @@ class SearchTheSameTemplate():
 						rowMap = random.randint(0, 3)
 						columnMap = random.randint(0,3)					
 					
-						self.mainWindows.getLogger().debug("-------------------------------")
+						'''self.mainWindows.getLogger().debug("-------------------------------")
 						self.mainWindows.getLogger().debug(row)
 						self.mainWindows.getLogger().debug(column)	
 						self.mainWindows.getLogger().debug(rowMap)
-						self.mainWindows.getLogger().debug(columnMap)
+						self.mainWindows.getLogger().debug(columnMap)'''
 
 						if (rowMap != row or columnMap != column) and theMatrix[rowMap][columnMap] is None:
-							theMatrix[row][column] = [rowMap,columnMap]			
-							theMatrix[rowMap][columnMap] = [row,column]
+							theMatrix[row][column] = [rowMap,columnMap, itemIndex[currentItemIndex]]			
+							theMatrix[rowMap][columnMap] = [row,column, itemIndex[currentItemIndex]]
+							currentItemIndex = currentItemIndex + 1
 							isFoundMap = True
 				column = column + 1
 			row = row + 1
@@ -136,7 +135,8 @@ class SearchTheSameTemplate():
 		self.setUnavailableColour(colour)
 		self.fakeSelection(self.currentEventBoxSelected, colour)	
 	
-		self.payloads.append(itemCopy)
+		itemIndex = self.mapTable[self.currentRowPairIndex][self.currentColumnPairIndex][2]
+		self.payloads[str(itemIndex)] = [itemCopy, self.currentRowPairIndex, self.currentColumnPairIndex]
 
 		hBox = self.currentEventBoxSelected.get_parent()
 		vBox  = hBox.get_parent()
@@ -153,14 +153,12 @@ class SearchTheSameTemplate():
 		self.fakeSelection(pairEventBox, colour)
                 pairEventBox.show_all()
 		
-	
-
 
 	def copyItem(self, item, itemType, args):
                 self.mainWindows.getLogger().debug("Inside to copyItem:")
                 self.mainWindows.getLogger().debug(itemType)
                 itemCopy = None
-                if itemType == "text":
+                if itemType == "text" or itemType == "letter":
                         itemCopy = gtk.Label(item.get_text())
                         itemCopy.modify_font(pango.FontDescription("Courier Bold 40"))
                 elif itemType == "image":
@@ -179,11 +177,8 @@ class SearchTheSameTemplate():
 		self.currentRowPairIndex = self.mapTable[args[1]][args[2]][0]
 		self.currentColumnPairIndex = self.mapTable[args[1]][args[2]][1]
 
-		
-			
 	
-	
-	def getWindow(self, mainWindows):
+	def getWindow(self, mainWindows, jsonState):
 		
 		self.mainWindows = mainWindows
 			
@@ -207,14 +202,19 @@ class SearchTheSameTemplate():
 		
 		rowsCount = 0
 		self.setAllAvailableSelectionColour()
-		self.mapTable = self.givemeMapTable(rows, columns)
-		self.payloads = []
+		
+		if jsonState is not None:
+			self.mapTable = jsonState['mapTable']
+		else:
+			self.mapTable = self.givemeMapTable(rows, columns)
+		
+		self.payloads = {}
 		while rowsCount < (rows):
 			
 			hBox = gtk.HBox(True, 0)
 			countColumns = 0
 			while countColumns < (columns):
-				
+								
 				eventBox = self.blankEventBox()
 				
 				eventBox.connect("button-press-event", self.cellSelectedCallBack, rowsCount, countColumns)
@@ -224,34 +224,101 @@ class SearchTheSameTemplate():
 			vBox.pack_start(hBox, True,True,5)
 			rowsCount = rowsCount + 1
 		
+		if jsonState is not None:
+                        self.mapTable = jsonState['mapTable']
+              		rowsCount = 0
+			columnsCount = 0
+			for index, jsonItem in enumerate(jsonState['items']): 
+ 				eventBox = vBox.get_children()[jsonItem['rowPosition']].get_children()[jsonItem['columnPosition']]
+				payload, args = self.resumePayload(jsonItem)
+				self.currentEventBoxSelected = eventBox
+                		self.currentRowPairIndex = self.mapTable[jsonItem['rowPosition']][jsonItem['columnPosition']][0]
+                		self.currentColumnPairIndex = self.mapTable[jsonItem['rowPosition']][jsonItem['columnPosition']][1]
+				self.modalWindowReturn(payload, jsonItem['type'], args)
+		else:
+                        self.mapTable = self.givemeMapTable(rows, columns)
+		
+
+	
 		vBoxExercises.pack_start(vBox, False,False,0)
 		vBoxWindows.pack_start(frameExercises, True,True,0)
 		windowSearchTheSame.add_with_viewport(vBoxWindows)
 		
 		return windowSearchTheSame
 	
+	def resumePayload(self, jsonItem):
+                
+		self.mainWindows.getLogger().debug("Inside to resumeEventBox")
+                self.mainWindows.getLogger().debug(jsonItem)
+                
+                args = {}
+                if jsonItem['type'] == 'letter':
+                	payloadResume = gtk.Label( jsonItem['value'] )
+                        payloadResume.modify_font(pango.FontDescription("Courier Bold 60"))
+
+                elif  jsonItem['type'] == 'image':
+                	payloadResume = gtk.Image()
+               		payloadResume.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(\
+                        	jsonItem['value'] ).scale_simple(IMAGES_SCALE[0], IMAGES_SCALE[1], 2))
+                        payloadResume.imageName = jsonItem['fileName']
+                        payloadResume.imageType = jsonItem['fileType']
+			args = {"imageName": jsonItem['fileName'],"imageType": jsonItem['fileType']}
+               
+		return (payloadResume, args)
 	
-	def parseToJson(self):
-                theExerciseJson = {}
+	
+	def parseToJson(self, isStop, pathToSaveItemsStop):
+                self.mainWindows.getLogger().debug("Inside to parseToJson method")
+		#self.mainWindows.getLogger().debug(self.payloads)
+		theExerciseJson = {}
                 theExerciseJson['codeType'] = 3
                 theExerciseJson['items'] = []
                 itemsToCopy = []
-                if len(self.payloads) < 8:
+                if len(self.payloads) < 8 and not isStop:
 			return (None, None, False, "All items must be filled")
-		for payload in self.payloads:
-                        self.mainWindows.getLogger().debug("Hframe child: ")
-                        theExerciseJson['items'].append(self.parsePayloadToJson(payload, itemsToCopy))
-                return (theExerciseJson, itemsToCopy, True, None)
+		for key, payload in self.payloads.iteritems():
+			#self.mainWindows.getLogger().debug("Inside to for")
+			#self.mainWindows.getLogger().debug(payload)
+                        #self.mainWindows.getLogger().debug("Hframe child: ")
+                        theExerciseJson['items'].append(self.parseItemToJson(payload, itemsToCopy, isStop, pathToSaveItemsStop))
+                
+		response = (theExerciseJson, itemsToCopy, True, None)
+		if isStop:
+			theExerciseJson['mapTable'] = self.mapTable		
+			response = (theExerciseJson, itemsToCopy)
 
-        def parsePayloadToJson(self, payload, itemsToCopy):
+		return response
+	
+	
+	def parseItemToJson(self, payload, itemsToCopy, isStop, pathToSaveItemsStop):
                 self.mainWindows.getLogger().debug(" Inside to parseToJson")
                 theJson = {}
-                self.mainWindows.getLogger().debug(payload.__class__.__name__)
-                if payload.__class__.__name__ == "Label":
+                #self.mainWindows.getLogger().debug(eventBoxFilled)
+                if isStop == True:
+                        #self.mainWindows.getLogger().debug("Inside of: If isStop == True")
+               
+                        #self.mainWindows.getLogger().debug("Inside of in: if eventBoxFilled == True")
+                      	self.parsePayloadToJson(payload, pathToSaveItemsStop, theJson, itemsToCopy, isStop)
+                else:
+                        #self.mainWindows.getLogger().debug("Inside in: else")
+                        self.parsePayloadToJson(payload, "./images", theJson, itemsToCopy, isStop)
+                return theJson
+
+
+      	def parsePayloadToJson(self, payload ,itemsPath, theJson, itemsToCopy, isStop):
+                if payload[0].__class__.__name__ == "Label":
                         theJson['type'] = "letter"
-                        theJson["value"] = payload.get_text()
-                if payload.__class__.__name__ == "Image":
+                        theJson["value"] = payload[0].get_text()
+                if payload[0].__class__.__name__ == "Image":
                         theJson['type'] = "image"
-                        theJson['value'] = "./images/" + payload.imageName
-                        itemsToCopy.append({"type":"image", "value":payload, "fileName":payload.imageName, "fileType":payload.imageType})
-                return theJson	
+                        theJson['value'] = itemsPath + "/" + payload[0].imageName
+                        if isStop:
+                                theJson['fileName'] = payload[0].imageName
+                                theJson['fileType'] = payload[0].imageType
+			        itemsToCopy.append({"type":"image", "value":payload[0], "fileName":payload[0].imageName, \
+					"fileType":payload[0].imageType})
+		if isStop:
+			theJson['rowPosition'] = payload[1]
+			theJson['columnPosition'] = payload[2]
+
+			

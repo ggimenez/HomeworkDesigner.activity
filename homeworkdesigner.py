@@ -284,6 +284,17 @@ class HomeWorkDesigner(activity.Activity):
 		self.vBoxMain.get_children()[self.currentExerciseIndex].show()
 		self.manageNevegationButtons()
 	
+	def moveToExerciseIndex(self, indexExercise):
+		vBoxMain = self.vBoxMain
+                allWindowsExercises = vBoxMain.get_children()
+                for index, windowExercise in enumerate(allWindowsExercises):
+                        if index != indexExercise:
+				windowExercise.hide()
+			else:
+				windowExercise.show_all()
+		self.currentExerciseIndex = indexExercise
+		self.manageNevegationButtons()	
+	
 	def buttonDeleteExerciseCallBack(self, button, *args):
 		self._alert_confirmation(self.deleteExerciseCallBack, "Remove exercise", "Are you sure ?")		
 	
@@ -399,7 +410,7 @@ class HomeWorkDesigner(activity.Activity):
 			newWindowExerciseTemplate = newExerciseTemplate.getWindow(self, jsonResume)		
 		elif codeExerciseType == 3:
 			newExerciseTemplate = SearchTheSameTemplate()
-			newWindowExerciseTemplate = newExerciseTemplate.getWindow(self)
+			newWindowExerciseTemplate = newExerciseTemplate.getWindow(self, jsonResume)
 		
 	
 		vBoxMain = self.vBoxMain
@@ -476,7 +487,8 @@ class HomeWorkDesigner(activity.Activity):
 		allExerciseWindows = self.vBoxMain.get_children()
                 theJson = {}
                 theJson["name"] = "JSON de prueba"
-                theJson["exercises"] = []
+                theJson['currentExerciseIndex'] = self.currentExerciseIndex
+		theJson["exercises"] = []
                 itemsToCopy = []
 		activityName = self.metadata.get('title')
                 for index, exerciseWindow in enumerate( allExerciseWindows ):
@@ -499,5 +511,5 @@ class HomeWorkDesigner(activity.Activity):
 	def resumeActivity(self, jsonState):
 		for exerciseJson in jsonState['exercises']:
 			self.createNewExerciseType(exerciseJson['codeType'], exerciseJson)
-					
-
+		self.moveToExerciseIndex(jsonState['currentExerciseIndex'])				
+		
