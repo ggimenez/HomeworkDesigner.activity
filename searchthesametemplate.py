@@ -35,6 +35,8 @@ COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#D2691E"), "available":True}
 #Gray
 COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#808080"), "available":True})
 
+IMAGES_SCALE = [100, 100]
+LETTERS_SCALE = [100, 100]
 
 
 class SearchTheSameTemplate():	
@@ -272,6 +274,7 @@ class SearchTheSameTemplate():
 		#self.mainWindows.getLogger().debug(self.payloads)
 		theExerciseJson = {}
                 theExerciseJson['codeType'] = 3
+		theExerciseJson['mapTable'] = self.mapTable	
                 theExerciseJson['items'] = []
                 itemsToCopy = []
                 if len(self.payloads) < 8 and not isStop:
@@ -283,8 +286,7 @@ class SearchTheSameTemplate():
                         theExerciseJson['items'].append(self.parseItemToJson(payload, itemsToCopy, isStop, pathToSaveItemsStop))
                 
 		response = (theExerciseJson, itemsToCopy, True, None)
-		if isStop:
-			theExerciseJson['mapTable'] = self.mapTable		
+		if isStop:	
 			response = (theExerciseJson, itemsToCopy)
 
 		return response
@@ -315,8 +317,8 @@ class SearchTheSameTemplate():
                         if isStop:
                                 theJson['fileName'] = payload[0].imageName
                                 theJson['fileType'] = payload[0].imageType
-			        itemsToCopy.append({"type":"image", "value":payload[0], "fileName":payload[0].imageName, \
-					"fileType":payload[0].imageType})
+			itemsToCopy.append({"type":"image", "value":payload[0], "fileName":payload[0].imageName, \
+				"fileType":payload[0].imageType})
 		if isStop:
 			theJson['rowPosition'] = payload[1]
 			theJson['columnPosition'] = payload[2]
