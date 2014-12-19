@@ -34,50 +34,14 @@ COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#D2691E"), "available":True}
 COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#808080"), "available":True})
 
 
+IMAGES_SCALE = [100, 100]
+LETTERS_SCALE = [100, 100]
+
+
 
 class SearchTheSame():
 	
 		
-	
-	def createStoreSelection(self, exercise):
-		
-		items = exercise.items
-		indexsCountUse = [0]*8
-		pairTracker = [None]*8
-		
-		storeSelectionState = [[None for i in range(4)] for j in range(4)]
-		
-		rows = 4
-		rowsCount = 0
-		columns = 4
-		
-		self.lastCellSelected = None
-		self.matches = 0
-		
-		while rowsCount < rows :
-			columnsCount = 0
-			while columnsCount < columns:
-				indexFound = False
-				while indexFound == False:
-					indexToUse = random.randint(0,7)
-					
-					if indexsCountUse[indexToUse] < 2:
-						
-						if indexsCountUse[indexToUse] == 0 :
-							pairTracker[indexToUse] = [rowsCount,columnsCount]
-						else: 					
-							storeSelectionState[rowsCount][columnsCount] = {"type": items[indexToUse].type, "value": items[indexToUse].value, "pair":pairTracker[indexToUse]}
-							storeSelectionState[pairTracker[indexToUse][0]][pairTracker[indexToUse][1]] = {"type": items[indexToUse].type,"value": items[indexToUse].value, "pair":[rowsCount,columnsCount]}
-							
-						indexFound = True
-						indexsCountUse[indexToUse] = indexsCountUse[indexToUse] + 1
-						
-				columnsCount = columnsCount + 1
-			
-			rowsCount = rowsCount + 1
-		
-		return storeSelectionState
-	
 	def blankEventBox(self):
 		eventBox = gtk.EventBox()
 		eventBox.modify_bg(gtk.STATE_NORMAL, eventBox.get_colormap().alloc_color("white"))
@@ -107,7 +71,7 @@ class SearchTheSame():
 		eventBox.modify_bg(gtk.STATE_NORMAL, colour['colour'])
 		return colour
 		
-	def fakeUnselection(self, eventBox)	:
+	def fakeUnselection(self, eventBox):
 		eventBox.modify_bg(gtk.STATE_NORMAL, eventBox.get_colormap().alloc_color('white'))
 		oldPayload = eventBox.get_children()[0]
 		eventBox.remove(oldPayload)
@@ -119,19 +83,32 @@ class SearchTheSame():
 	def changeEventBoxPayload(self, rowIndex, columnIndex, eventBox):
 		oldPayload = eventBox.get_children()[0]
 		eventBox.remove(oldPayload)
-		if self.storeSelectionState[rowIndex][columnIndex]['type'] == "letter":
-			letterLabel = gtk.Label(self.storeSelectionState[rowIndex][columnIndex]['value'])
+		payload = self.payloads[self.mapTable[rowIndex][columnIndex][2]]
+		if payload.type == "letter":
+			letterLabel = gtk.Label(payload.value)
 			letterLabel.modify_font(pango.FontDescription("Courier Bold 50"))
 			eventBox.add(letterLabel)
 			eventBox.show_all()
+		elif payload.type == "image":
+			image = gtk.Image()
+                        image.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(\
+                                payload.value ).scale_simple(IMAGES_SCALE[0], IMAGES_SCALE[1], 2))
+			eventBox.add(image)
+			eventBox.show_all()
+                        '''payloadResume.imageName = jsonItem['fileName']
+                        payloadResume.imageType = jsonItem['fileType
+                        args = {"imageName": jsonItem['fileName'],"imageType": jsonItem['fileType']}'''
+	
+
 	
 	def cellSelectedCallBack(self, eventBox, *args):
 		
-		vBox = eventBox.get_parent()
-		rowIndex = vBox.child_get_property(eventBox, "position")
+		self.mainWindows.getLogger().debug("Inside to cellSelectedCallBack")	
+		hBox = eventBox.get_parent()
+		columnIndex = hBox.child_get_property(eventBox, "position")
 		
-		hBox = vBox.get_parent()
-		columnIndex = hBox.child_get_property(vBox, "position")
+		vBox = hBox.get_parent()
+		rowIndex = vBox.child_get_property(hBox, "position")
 		
 		self.changeEventBoxPayload(rowIndex, columnIndex, eventBox)
 		colour = self.fakeSelection(eventBox)
@@ -141,17 +118,23 @@ class SearchTheSame():
 		elif self.lastCellSelected != [rowIndex,columnIndex]:
 			lastEventBoxSelectedRow = self.lastCellSelected[0]
 			lastEventBoxSelectedColumn = self.lastCellSelected[1]
-			lastEventBoxSelectedVBox = hBox.get_children()[lastEventBoxSelectedColumn]
-			lastEventBoxSelected = lastEventBoxSelectedVBox.get_children()[lastEventBoxSelectedRow]
-			if self.lastCellSelected != self.storeSelectionState[rowIndex][columnIndex]['pair']:
+			lastEventBoxSelectedHBox = vBox.get_children()[lastEventBoxSelectedRow]
+			lastEventBoxSelected = lastEventBoxSelectedHBox.get_children()[lastEventBoxSelectedColumn]
+			pairSelected = []
+			pairSelected.append(self.mapTable[rowIndex][columnIndex][0])
+			pairSelected.append(self.mapTable[rowIndex][columnIndex][1])
+
+			self.mainWindows.getLogger().debug(self.lastCellSelected)
+			self.mainWindows.getLogger().debug(pairSelected)
+			if self.lastCellSelected != pairSelected:
 				
 				self.fakeUnselection(lastEventBoxSelected)
 				#lastEventBoxSelected.get_children()[0].set_text("")
 				self.lastCellSelected =[rowIndex,columnIndex]
 			
 			else :
-				handlerId = self.storeSelectionState[rowIndex][columnIndex]['handlerId']
-				lastEventBoxHandlerId = self.storeSelectionState[lastEventBoxSelectedRow][lastEventBoxSelectedColumn]['handlerId']
+				handlerId = self.mapTable[rowIndex][columnIndex][3]
+				lastEventBoxHandlerId = self.mapTable[lastEventBoxSelectedRow][lastEventBoxSelectedColumn][3]
 				self.matches = self.matches + 1
 				eventBox.disconnect(handlerId)
 				lastEventBoxSelected.disconnect(lastEventBoxHandlerId)
@@ -161,12 +144,16 @@ class SearchTheSame():
 		if self.matches == 8:
 			self.mainWindows.exerciseCompletedCallBack()
 				
-	
+		
 	
 	def getWindow(self, exercise, mainWindows):
-		
-		self.mainWindows = mainWindows
+	
+				
 			
+		self.mainWindows = mainWindows
+		self.mainWindows.getLogger().debug("Inside to getWindow()")
+		self.mainWindows.getLogger().debug(exercise)		
+	
 		windowSearchTheSame= gtk.ScrolledWindow()
 		
 		frameExercises = gtk.Frame() 
@@ -180,29 +167,35 @@ class SearchTheSame():
 		
 		items = exercise.items
 		
-		hBox = gtk.HBox(True, 0)
+		vBox = gtk.VBox(True, 0)
 		columns = 4
 		rows = 4
 		
 		rowsCount = 0
-		self.storeSelectionState = self.createStoreSelection(exercise)
+		#self.storeSelectionState = self.createStoreSelection(exercise)
+		self.mapTable = exercise.mapTable
+		#self.addPayloadToMapTable(exercise['items'])
 		self.setAllAvailableSelectionColour()
+		self.payloads = exercise.items
+		self.lastCellSelected = None
+		self.matches = 0
 		while rowsCount < (rows):
 			
-			vBox = gtk.VBox(True, 0)
+			hBox = gtk.HBox(True, 0)
 			countColumns = 0
 			while countColumns < (columns):
 				
 				eventBox = self.blankEventBox()
 				handlerId  = eventBox.connect("button-press-event", self.cellSelectedCallBack)
-				self.storeSelectionState[countColumns][rowsCount]['handlerId'] = handlerId
-				vBox.pack_start(eventBox, False,False,5)
+				self.mapTable[rowsCount][countColumns].append(handlerId)
+				
+				hBox.pack_start(eventBox, True,True,5)
 				countColumns = countColumns + 1
 			
-			hBox.pack_start(vBox, True,True,5)
+			vBox.pack_start(hBox, True,True,5)
 			rowsCount = rowsCount + 1
 		
-		vBoxExercises.pack_start(hBox, False,False,0)
+		vBoxExercises.pack_start(vBox, False,False,0)
 		vBoxWindows.pack_start(frameExercises, True,True,0)
 		windowSearchTheSame.add_with_viewport(vBoxWindows)
 		

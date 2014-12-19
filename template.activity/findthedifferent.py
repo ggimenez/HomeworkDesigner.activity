@@ -11,6 +11,11 @@ import pango
 
 import random
 
+
+IMAGES_SCALE = [100, 100]
+LETTERS_SCALE = [100, 100]
+
+
 class FindTheDifferent():
 	
 	def changeBackgroundColour(self, eventBox, colour):
@@ -53,6 +58,14 @@ class FindTheDifferent():
 			label = gtk.Label(itemElement.value)
 			label.modify_font(pango.FontDescription("Courier Bold 40"))
 			eventBox.add(label)
+		elif itemElement.type == "image":
+                        image = gtk.Image()
+                        image.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(\
+                                itemElement.value ).scale_simple(IMAGES_SCALE[0], IMAGES_SCALE[1], 2))
+                        eventBox.add(image)
+                        eventBox.show_all()
+
+
 			
 		return eventBox
 		
@@ -106,4 +119,5 @@ class FindTheDifferent():
 		return windowFindTheDifferent
 		
 	
+		
 		

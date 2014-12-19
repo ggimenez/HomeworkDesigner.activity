@@ -79,13 +79,14 @@ class ModalWindowDone:
 		
 		doneImageContainer =  gtk.Image()
 		buttonImageContainer =  gtk.Image()
-		
+		buttonImageContainer.set_from_stock(gtk.STOCK_OK, gtk.ICON_SIZE_BUTTON)		
+	
 		if self.parent.currentIndexExercise < (self.parent.amountExercises - 1):
 			doneImageContainer.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file("./activity-images/party.png").scale_simple(200, 200, 2))	
-			buttonImageContainer.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file("./activity-images/left.png").scale_simple(50, 50, 2))
+			#buttonImageContainer.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file("./activity-images/left.png").scale_simple(50, 50, 2))
 		else:
 			doneImageContainer.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file("./activity-images/prize.png").scale_simple(200, 200, 2))
-			buttonImageContainer.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file("./activity-images/left.png").scale_simple(50, 50, 2))
+			#buttonImageContainer.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file("./activity-images/left.png").scale_simple(50, 50, 2))
 		
 		
 		
@@ -115,6 +116,10 @@ class HomeWorkViewer(activity.Activity):
 	"""HelloWorldActivity class as specified in activity.info"""
 
 	def __init__(self, handle):
+
+		self._logger = logging.getLogger('home-work-viewer')
+                self._logger.setLevel(logging.DEBUG)
+
 
 		'''Obtenemos el JSON de la Actividad'''
 		json_data=open('json.txt')
@@ -183,9 +188,15 @@ class HomeWorkViewer(activity.Activity):
 			self.modalDoneWindow.show()	
 	
 	def manageBackNextButtons(self):
+		self.getLogger().debug("Inside to manageBackNextButtons")
+		self.getLogger().debug(self.currentIndexExercise)
+		self.getLogger().debug(self.amountExercises)
 		if self.currentIndexExercise == 0:
 			self.buttonBefore.set_sensitive(False) 
-			self.buttonNext.set_sensitive(True) 
+			if self.amountExercises != 1:
+				self.buttonNext.set_sensitive(True)
+			else:
+				self.buttonNext.set_sensitive(False) 
 		elif self.currentIndexExercise > 0 and self.currentIndexExercise < (self.amountExercises-1):
 			
 			self.buttonBefore.set_sensitive(True) 
@@ -229,31 +240,10 @@ class HomeWorkViewer(activity.Activity):
 		self.show_all()
 	
 	def read_file(self, tmp_file):
-		""" datastore high-level interaction to read """
-		logging.debug("The tmp_file is at %s, for reading", tmp_file)
-
-		# resume metadata
-		try:
-			self.entry.set_text(self.metadata['entry'])
-		except KeyError:
-			logging.error("No entry metadata")
-
-		# resume data
-		data = open(tmp_file, "r")
-		buffer = self.text.get_buffer()
-		buffer.set_text(data.read())
-		data.close()
-
+		pass	
 	def write_file(self, tmp_file):
-		""" datastore high-level interaction to write """
-		logging.debug("The tmp_file is at %s, for writing", tmp_file)
-
-		# save metadata
-		self.metadata['entry'] = self.entry.get_text()
-
-		# save data
-		data = open(tmp_file, "w")
-		buffer = self.text.get_buffer()
-		data.write(buffer.get_text(*buffer.get_bounds()))
-		data.close()
+		pass	
+	
+	def getLogger(self):
+                return self._logger
 

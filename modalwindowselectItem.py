@@ -72,7 +72,7 @@ class ModalWindowSelectItem:
 		frameEventBoxImageItem.add(eventBoxImageItem)
 		
 		vBoxImageItem.pack_start(frameEventBoxImageItem, False,False,0)
-		self.hBoxItem.pack_start(vBoxImageItem, False,False	,0)
+		self.hBoxItem.pack_start(vBoxImageItem, False,False,0)
 		
 		imageButtonIcon = gtk.Image()
 		imageButtonIcon.set_from_stock(gtk.STOCK_CANCEL, gtk.ICON_SIZE_MENU)	
