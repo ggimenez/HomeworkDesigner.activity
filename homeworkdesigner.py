@@ -391,6 +391,9 @@ class HomeWorkDesigner(activity.Activity):
 		datastore.write(file_dsobject)
 		
 		self._alert_notify(_("Export as activity"), _("It has been exported successfully"))
+		
+		#delete the .xo created when is saved in the datastore
+		os.remove(self.get_activity_root() + '/instance/' + activityNameSpacesLess + '.activity.xo')			
 
 		self.getLogger().debug(theJson)
 		self.getLogger().debug(itemsToCopy)
