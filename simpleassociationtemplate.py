@@ -14,6 +14,9 @@ import random
 from sugar.graphics.objectchooser import ObjectChooser
 from sugar.graphics.entry import CanvasEntry
 from modalwindowselectItem import ModalWindowSelectItem
+
+from gettext import gettext as _
+
 ''' Scales '''
 IMAGES_SCALE = [100, 100]
 LETTERS_SCALE = [100, 100]

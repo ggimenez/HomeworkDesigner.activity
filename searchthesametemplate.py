@@ -13,6 +13,7 @@ import random
 
 from modalwindowselectItem import ModalWindowSelectItem
 
+from gettext import gettext as _
 
 '''Color Selection association
 Reference of colours codes :http://www.rapidtables.com/web/color/RGB_Color.htm
@@ -38,7 +39,6 @@ COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#808080"), "available":True}
 IMAGES_SCALE = [100, 100]
 LETTERS_SCALE = [100, 100]
 
-
 class SearchTheSameTemplate():	
 			
 		
@@ -57,7 +57,7 @@ class SearchTheSameTemplate():
 	def getAvailableSelectionColour(self):
 		for colour in COLOURS_ASSOCIATION:
 			if colour['available']:
-					return colour
+				return colour
 
 	def setUnavailableColour(self, colour):
 		COLOURS_ASSOCIATION[COLOURS_ASSOCIATION.index(colour)]['available'] = False
@@ -103,13 +103,7 @@ class SearchTheSameTemplate():
 					while (isFoundMap is False):
 						rowMap = random.randint(0, 3)
 						columnMap = random.randint(0,3)					
-					
-						'''self.mainWindows.getLogger().debug("-------------------------------")
-						self.mainWindows.getLogger().debug(row)
-						self.mainWindows.getLogger().debug(column)	
-						self.mainWindows.getLogger().debug(rowMap)
-						self.mainWindows.getLogger().debug(columnMap)'''
-
+						
 						if (rowMap != row or columnMap != column) and theMatrix[rowMap][columnMap] is None:
 							theMatrix[row][column] = [rowMap,columnMap, itemIndex[currentItemIndex]]			
 							theMatrix[rowMap][columnMap] = [row,column, itemIndex[currentItemIndex]]
@@ -124,9 +118,7 @@ class SearchTheSameTemplate():
 	def modalWindowReturn(self, item, itemType, args):
                 self.mainWindows.getLogger().debug("Inside a modalWindowReturn")
                 self.mainWindows.getLogger().debug(item)
-                copyMethod = None
-
-                #indexCurrentEventBox = self.currentHBoxItems.child_get_property(self.currentEventBoxSelected, "position")
+                copyMethod = None 
 
 		itemCopy = self.copyItem(item, itemType, args)
                 oldItem = self.currentEventBoxSelected.get_children()[0]
@@ -144,8 +136,7 @@ class SearchTheSameTemplate():
 		vBox  = hBox.get_parent()
 		
 		self.mainWindows.getLogger().debug(self.currentColumnPairIndex)
-		self.mainWindows.getLogger().debug(self.currentRowPairIndex)
-		#self.mainWindows.getLogger().debug(hBox.get_children()[self.currentColumnPairIndex])
+		self.mainWindows.getLogger().debug(self.currentRowPairIndex)	
 
 		pairEventBox = vBox.get_children()[self.currentRowPairIndex].get_children()[self.currentColumnPairIndex]
 		itemCopyPair = self.copyItem(item, itemType, args)
@@ -271,18 +262,15 @@ class SearchTheSameTemplate():
 	
 	def parseToJson(self, isStop, pathToSaveItemsStop):
                 self.mainWindows.getLogger().debug("Inside to parseToJson method")
-		#self.mainWindows.getLogger().debug(self.payloads)
+		
 		theExerciseJson = {}
                 theExerciseJson['codeType'] = 3
 		theExerciseJson['mapTable'] = self.mapTable	
                 theExerciseJson['items'] = []
                 itemsToCopy = []
                 if len(self.payloads) < 8 and not isStop:
-			return (None, None, False, "All items must be filled")
+			return (None, None, False, _("All items must be filled"))
 		for key, payload in self.payloads.iteritems():
-			#self.mainWindows.getLogger().debug("Inside to for")
-			#self.mainWindows.getLogger().debug(payload)
-                        #self.mainWindows.getLogger().debug("Hframe child: ")
                         theExerciseJson['items'].append(self.parseItemToJson(payload, itemsToCopy, isStop, pathToSaveItemsStop))
                 
 		response = (theExerciseJson, itemsToCopy, True, None)
@@ -295,17 +283,14 @@ class SearchTheSameTemplate():
 	def parseItemToJson(self, payload, itemsToCopy, isStop, pathToSaveItemsStop):
                 self.mainWindows.getLogger().debug(" Inside to parseToJson")
                 theJson = {}
-                #self.mainWindows.getLogger().debug(eventBoxFilled)
+        
                 if isStop == True:
-                        #self.mainWindows.getLogger().debug("Inside of: If isStop == True")
-               
-                        #self.mainWindows.getLogger().debug("Inside of in: if eventBoxFilled == True")
+                        
                       	self.parsePayloadToJson(payload, pathToSaveItemsStop, theJson, itemsToCopy, isStop)
                 else:
-                        #self.mainWindows.getLogger().debug("Inside in: else")
+                        
                         self.parsePayloadToJson(payload, "./images", theJson, itemsToCopy, isStop)
                 return theJson
-
 
       	def parsePayloadToJson(self, payload ,itemsPath, theJson, itemsToCopy, isStop):
                 if payload[0].__class__.__name__ == "Label":

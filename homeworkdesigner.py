@@ -55,7 +55,7 @@ import glob
 from sugar.graphics.alert import ConfirmationAlert
 from sugar.graphics.alert import NotifyAlert
 
-import pickle
+
 
 
 class ModalWindowSelectExercise:
@@ -117,7 +117,7 @@ class ModalWindowSelectExercise:
 		imageButtonIcon.set_from_stock(gtk.STOCK_CANCEL, gtk.ICON_SIZE_MENU)	
 		buttonOk = gtk.Button()
 		buttonOk.set_image(imageButtonIcon)
-		buttonOk.set_label("Cancelar")
+		buttonOk.set_label(_("Cancel"))
 		buttonOk.connect ("clicked", self.cancelButtonCallBack)
 		buttonOk.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color("black"))
 		hBoxButton = gtk.HBox(True,0)
@@ -184,12 +184,12 @@ class HomeWorkDesigner(activity.Activity):
 		separator.show()
 
 		self.buttonBefore = ToolButton('go-previous')
-		self.buttonBefore.set_tooltip(_('Anterior'))
+		self.buttonBefore.set_tooltip(_('Back'))
 		self.buttonBefore.connect("clicked", self.backButtonCallBack)
 		toolbar_box.toolbar.insert(self.buttonBefore, 2)
 
 		self.buttonNext = ToolButton('go-next')
-		self.buttonNext.set_tooltip(_('Siguiente'))
+		self.buttonNext.set_tooltip(_('Next'))
 		self.buttonNext.connect("clicked", self.nextButtonCallBack)
 		toolbar_box.toolbar.insert(self.buttonNext, 3)
 		
@@ -206,17 +206,17 @@ class HomeWorkDesigner(activity.Activity):
                 separator2.show()
 	
 		self.newButton = ToolButton('add')
-		self.newButton.set_tooltip(_('Nuevo Ejercicio'))
+		self.newButton.set_tooltip(_('New Exercise'))
 		self.newButton.connect("clicked", self.newExerciseCallBack)
 		toolbar_box.toolbar.insert(self.newButton, 6)
 	
 		self.deleteButton = ToolButton('edit-delete')
-		self.deleteButton.set_tooltip(_('Borrar Ejercicio'))
+		self.deleteButton.set_tooltip(_('Delete Exercise'))
 		self.deleteButton.connect("clicked", self.buttonDeleteExerciseCallBack)
 		toolbar_box.toolbar.insert(self.deleteButton, 7)
 		
 		self.exportButton = ToolButton('document-save')
-		self.exportButton.set_tooltip(_('Exportar Ejercicio'))
+		self.exportButton.set_tooltip(_('Export Exercise'))
 		self.exportButton.connect("clicked", self.exportExerciseCallBack)
 		toolbar_box.toolbar.insert(self.exportButton, 8)
 	
@@ -296,7 +296,7 @@ class HomeWorkDesigner(activity.Activity):
 		self.manageNevegationButtons()	
 	
 	def buttonDeleteExerciseCallBack(self, button, *args):
-		self._alert_confirmation(self.deleteExerciseCallBack, "Remove exercise", "Are you sure ?")		
+		self._alert_confirmation(self.deleteExerciseCallBack, _("Remove exercise"), _("Are you sure ?"))		
 	
 	def deleteExerciseCallBack(self):
 		self.getLogger().debug("inside to buttonDeleteExercise")
@@ -333,7 +333,7 @@ class HomeWorkDesigner(activity.Activity):
 		for index, exerciseWindow in enumerate( allExerciseWindows ):
 				exerciseJson, itemsToCopyAux, validExercise , errorMessage = exerciseWindow.exerciseInstance.parseToJson(False, None)
 				if validExercise == False:
-					self._alert_notify("Export as activity", "Error in the exercise Number " + str(index + 1) + " : " + errorMessage)
+					self._alert_notify(_("Export as activity"), _("Error in the exercise Number ") + str(index + 1) + " : " + errorMessage)
 					return 
 				itemsToCopy = itemsToCopy + itemsToCopyAux
 				theJson['exercises'].append(exerciseJson)
@@ -376,8 +376,7 @@ class HomeWorkDesigner(activity.Activity):
 				for infoEntry in activityInfoData:
 						infofile.write(infoEntry + "\n")
 				infofile.close()
-
-		#self.getLogger().debug(self.get_activity_root() + '/instance/' + 'prueba.xo' ) 
+	
 		zipf = zipfile.ZipFile(self.get_activity_root() + '/instance/' + activityNameSpacesLess + '.activity.xo', 'w')                                             
 		os.rename("./template.activity/", activityNameSpacesLess + '.activity')
 		self.zipdir(activityNameSpacesLess + '.activity', zipf)
@@ -391,7 +390,7 @@ class HomeWorkDesigner(activity.Activity):
 		file_dsobject.set_file_path(file_path)
 		datastore.write(file_dsobject)
 		
-		self._alert_notify("Export as activity", "It has been exported successfully")
+		self._alert_notify(_("Export as activity"), _("It has been exported successfully"))
 
 		self.getLogger().debug(theJson)
 		self.getLogger().debug(itemsToCopy)
@@ -476,8 +475,7 @@ class HomeWorkDesigner(activity.Activity):
 
 	def write_file(self, tmp_file_path):
 		self.getLogger().debug("Inside to write_file")
-		self.getLogger().debug(tmp_file_path)
-		#self.getLogger().debug(self.metadata.get_dictionary())
+		self.getLogger().debug(tmp_file_path)	
 		tmpFile = open(tmp_file_path, 'w')
 		self.saveActivityState(tmpFile)
 		tmpFile.close()

@@ -30,7 +30,7 @@ class FindTheDifferentTemplate():
 	def modalWindowReturn(self, item, itemType, args):
                 self.mainWindows.getLogger().debug("Inside a modalWindowReturn")
                 self.mainWindows.getLogger().debug(item)
-		#self.mainWindows.getLogger().debug(self.isFirstClick())
+		
 		copyMethod = None	
 		
 		indexCurrentEventBox = self.currentHBoxItems.child_get_property(self.currentEventBoxSelected, "position")
@@ -78,7 +78,7 @@ class FindTheDifferentTemplate():
 	def selectionCallBack(self,eventBox, *args):
 		
 		self.mainWindows.getLogger().debug("Inside to selectionCallBack")
-		#self.mainWindows.getLogger().debug(eventBox.filled)		
+		
 
 		dialogInsertNewItem = ModalWindowSelectItem(self.mainWindows, self)
                 dialogInsertNewItem.show()
@@ -158,7 +158,7 @@ class FindTheDifferentTemplate():
 						payload = self.createPayloadFromResume(jsonState['items'][index]['equal'])
 	
 				eventBox = self.createEventBox(payload)
-				#self.mainWindows.getLogger().debug(eventBox.filled)	
+				
 				eventBox.connect("button-press-event", self.selectionCallBack, different, hBox)
 				if count == different:
 					eventBox.different = True
@@ -232,33 +232,22 @@ class FindTheDifferentTemplate():
 		return response
 
 	def parseItemToJson(self, payload, itemsToCopy, isStop, eventBoxFilled, pathToSaveItemsStop):
-                self.mainWindows.getLogger().debug("inside to parseItemToJson")
-		'''self.mainWindows.getLogger().debug(payload)
-		self.mainWindows.getLogger().debug(itemsToCopy)
-		self.mainWindows.getLogger().debug(isStop)
-		self.mainWindows.getLogger().debug(eventBoxFilled)
-		self.mainWindows.getLogger().debug(pathToSaveItemsStop)'''
+                self.mainWindows.getLogger().debug("inside to parseItemToJson")	
 
-                theJson = {}
-                #self.mainWindows.getLogger().debug(eventBoxFilled)
+                theJson = {} 
                 if isStop == True:
-                        #self.mainWindows.getLogger().debug("Inside of: If isStop == True")
+                        
                         theJson['filled'] = eventBoxFilled
                         if eventBoxFilled == True:
-                                #self.mainWindows.getLogger().debug("Inside of in: if eventBoxFilled == True")
+                                
                                 self.parsePayloadToJson(payload, pathToSaveItemsStop, theJson, itemsToCopy, isStop)
-                else:
-                        #self.mainWindows.getLogger().debug("Inside in: else")
+                else: 
                         self.parsePayloadToJson(payload, "./images", theJson, itemsToCopy, isStop)
                 return theJson
 
         def parsePayloadToJson(self, payload ,itemsPath, theJson, itemsToCopy, isStop):
                 self.mainWindows.getLogger().debug("inside to parsePayloadToJson")
-		'''self.mainWindows.getLogger().debug(payload)
-		self.mainWindows.getLogger().debug(itemsPath)
-		self.mainWindows.getLogger().debug(theJson)
-		self.mainWindows.getLogger().debug(itemsToCopy)
-		self.mainWindows.getLogger().debug(isStop)'''
+	
 		if payload.__class__.__name__ == "Label":
                         theJson['type'] = "letter"
                         theJson["value"] = payload.get_text()

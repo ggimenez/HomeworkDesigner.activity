@@ -13,6 +13,10 @@ import random
 
 from sugar.graphics.objectchooser import ObjectChooser
 from sugar.graphics.entry import CanvasEntry
+
+from gettext import gettext as _
+
+
 ''' Scales '''
 IMAGES_SCALE = [100, 100]
 LETTERS_SCALE = [100, 100]
@@ -78,7 +82,7 @@ class ModalWindowSelectItem:
 		imageButtonIcon.set_from_stock(gtk.STOCK_CANCEL, gtk.ICON_SIZE_MENU)	
 		buttonCancel = gtk.Button()
 		buttonCancel.set_image(imageButtonIcon)
-		buttonCancel.set_label("Cancelar")
+		buttonCancel.set_label(_("Cancel"))
 		buttonCancel.connect ("clicked", self.cancelButtonCallBack)
 		buttonCancel.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color("black"))
 		
@@ -86,7 +90,7 @@ class ModalWindowSelectItem:
 		buttonOkIcon.set_from_stock(gtk.STOCK_APPLY, gtk.ICON_SIZE_MENU)	
 		buttonOk = gtk.Button()
 		buttonOk.set_image(buttonOkIcon)
-		buttonOk.set_label("Aceptar")
+		buttonOk.set_label(_("Accept"))
 		buttonOk.connect ("clicked", self.okButtonCallBack)
 		buttonOk.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color("black"))
 		
