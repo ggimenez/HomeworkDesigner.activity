@@ -21,6 +21,7 @@ from gettext import gettext as _
 IMAGES_SCALE = [100, 100]
 LETTERS_SCALE = [100, 100]
 
+FONT_DESCRIPTION = 'DejaVu Bold 40'
 
 class ModalWindowSelectItem:
 
@@ -128,8 +129,7 @@ class ModalWindowSelectItem:
 
 
 	def manageTextSelected(self):
-		labelText = gtk.Label(self.itemSelected)
-		#labelText.modify_font(pango.FontDescription("Courier Bold 60"))
+		labelText = gtk.Label(self.itemSelected)	
 		self.exerciseWindow.modalWindowReturn(labelText, "text", {})
 		
 	def manageImageSelected(self):
@@ -192,7 +192,7 @@ class ModalWindowSelectItem:
 		self.modalWindow.destroy()
 		
 	def exerciseTypeSelectedCallBack(self, eventBox, *args):
-		#self.parent._logger.debug(args)
+		
 		codeExerciseType = args[1]['code']
 		self.modalWindow.destroy()
 		self.parent.createNewExerciseType(codeExerciseType)

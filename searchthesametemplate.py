@@ -39,6 +39,9 @@ COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#808080"), "available":True}
 IMAGES_SCALE = [100, 100]
 LETTERS_SCALE = [100, 100]
 
+FONT_DESCRIPTION = 'DejaVu Bold 40'
+
+
 class SearchTheSameTemplate():	
 			
 		
@@ -46,7 +49,7 @@ class SearchTheSameTemplate():
 		eventBox = gtk.EventBox()
 		eventBox.modify_bg(gtk.STATE_NORMAL, eventBox.get_colormap().alloc_color("white"))
 		blankLabel = gtk.Label("")
-		blankLabel.modify_font(pango.FontDescription("Courier Bold 50"))
+		blankLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION))
 		eventBox.add(blankLabel)
 		return eventBox
 		
@@ -72,7 +75,7 @@ class SearchTheSameTemplate():
 		oldPayload = eventBox.get_children()[0]
 		eventBox.remove(oldPayload)
 		blankLabel = gtk.Label("")
-		blankLabel.modify_font(pango.FontDescription("Courier Bold 50"))
+		blankLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION))
 		eventBox.add(blankLabel)
 		eventBox.show_all()
 		
@@ -81,7 +84,7 @@ class SearchTheSameTemplate():
 		eventBox.remove(oldPayload)
 		if self.storeSelectionState[rowIndex][columnIndex]['type'] == "letter":
 			letterLabel = gtk.Label(self.storeSelectionState[rowIndex][columnIndex]['value'])
-			letterLabel.modify_font(pango.FontDescription("Courier Bold 50"))
+			letterLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION))
 			eventBox.add(letterLabel)
 			eventBox.show_all()
 	
@@ -153,7 +156,7 @@ class SearchTheSameTemplate():
                 itemCopy = None
                 if itemType == "text" or itemType == "letter":
                         itemCopy = gtk.Label(item.get_text())
-                        itemCopy.modify_font(pango.FontDescription("Courier Bold 40"))
+                        itemCopy.modify_font(pango.FontDescription(FONT_DESCRIPTION))
                 elif itemType == "image":
                         itemCopy = gtk.image_new_from_pixbuf(item.get_pixbuf())
 			itemCopy.imageName = args['imageName']
@@ -169,7 +172,6 @@ class SearchTheSameTemplate():
 		self.currentEventBoxSelected = eventBox
 		self.currentRowPairIndex = self.mapTable[args[1]][args[2]][0]
 		self.currentColumnPairIndex = self.mapTable[args[1]][args[2]][1]
-
 	
 	def getWindow(self, mainWindows, jsonState):
 		
@@ -247,7 +249,7 @@ class SearchTheSameTemplate():
                 args = {}
                 if jsonItem['type'] == 'letter':
                 	payloadResume = gtk.Label( jsonItem['value'] )
-                        payloadResume.modify_font(pango.FontDescription("Courier Bold 60"))
+                        payloadResume.modify_font(pango.FontDescription(FONT_DESCRIPTION))
 
                 elif  jsonItem['type'] == 'image':
                 	payloadResume = gtk.Image()

@@ -24,7 +24,7 @@ LETTERS_SCALE = [100, 100]
 '''Curren item selection association'''
 SELECTED_COLOUR = gtk.gdk.Color("#FFFF00")
 
-
+FONT_DESCRIPTION = 'DejaVu Bold 40'
 
 class SimpleAssociationTemplate():
 
@@ -35,7 +35,7 @@ class SimpleAssociationTemplate():
 		if jsonItem["filled"] is True:
                 	if jsonItem['type'] == 'letter':
                         	payloadResume = gtk.Label( jsonItem['value'] )
-				payloadResume.modify_font(pango.FontDescription("Courier Bold 60"))
+				payloadResume.modify_font(pango.FontDescription(FONT_DESCRIPTION))
 
                         elif  jsonItem['type'] == 'image':
                         	payloadResume = gtk.Image()
@@ -47,13 +47,10 @@ class SimpleAssociationTemplate():
 
 	
 	def getWindow(self, mainWindows, jsonState):
-	        
-
-			
+	        	
 		self.mainWindows = mainWindows
 		windowSimpleAssociation = gtk.ScrolledWindow()
-		windowSimpleAssociation.exerciseName =  "SimpleAssociationTemplate"		
-		
+		windowSimpleAssociation.exerciseName =  "SimpleAssociationTemplate"			
 		self.mainWindows.getLogger().debug("Inside to SimpleAssociationTemplate, getWindow method")
 		self.mainWindows.getLogger().debug(jsonState)
 		
@@ -112,9 +109,8 @@ class SimpleAssociationTemplate():
 		self.currentEventBoxSelected.filled = True 		
 
 		if itemType == "text":
-			item.modify_font(pango.FontDescription("Courier Bold 60"))
-
-		
+			item.modify_font(pango.FontDescription(FONT_DESCRIPTION))
+	
 		self.currentEventBoxSelected.add(item)
 		self.currentEventBoxSelected.show_all()
 
@@ -130,7 +126,7 @@ class SimpleAssociationTemplate():
 		
 		if payload is None:
 			blankLabel = gtk.Label("")
-			blankLabel.modify_font(pango.FontDescription("Courier Bold 70"))
+			blankLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION))
 			eventBox.add(blankLabel)
 			eventBox.set_size_request(LETTERS_SCALE[0], LETTERS_SCALE[1])	        
 			eventBox.filled = False
@@ -206,8 +202,7 @@ class SimpleAssociationTemplate():
 		COLOURS_ASSOCIATION[COLOURS_ASSOCIATION.index(colour)]['available'] = True
 	
 	def setUnavailableColour(self, colour):
-		COLOURS_ASSOCIATION[COLOURS_ASSOCIATION.index(colour)]['available'] = False
-	
+		COLOURS_ASSOCIATION[COLOURS_ASSOCIATION.index(colour)]['available'] = False	
 	
 	def fakeSelection(self, frame):
 		frame.modify_bg(gtk.STATE_NORMAL, SELECTED_COLOUR)

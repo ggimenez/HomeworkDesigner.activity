@@ -19,7 +19,7 @@ from modalwindowselectItem import ModalWindowSelectItem
 IMAGES_SCALE = [100, 100]
 LETTERS_SCALE = [100, 100]
 
-
+FONT_DESCRIPTION = 'DejaVu Bold 40'
 
 class FindTheDifferentTemplate():
 	
@@ -68,7 +68,7 @@ class FindTheDifferentTemplate():
 		itemCopy = None
 		if itemType == "text":
 			itemCopy = gtk.Label(item.get_text())
-			itemCopy.modify_font(pango.FontDescription("Courier Bold 40"))
+			itemCopy.modify_font(pango.FontDescription(FONT_DESCRIPTION))
 		elif itemType == "image":		
 			itemCopy = gtk.image_new_from_pixbuf(item.get_pixbuf())
 			itemCopy.imageName = args['imageName']
@@ -94,7 +94,7 @@ class FindTheDifferentTemplate():
 
                 if payload is None:
                         blankLabel = gtk.Label("")
-                        blankLabel.modify_font(pango.FontDescription("Courier Bold 70"))
+                        blankLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION))
                         eventBox.add(blankLabel)
                         eventBox.set_size_request(LETTERS_SCALE[0], LETTERS_SCALE[1])
                         eventBox.filled = False
@@ -113,7 +113,7 @@ class FindTheDifferentTemplate():
                 if jsonItem["filled"] is True:
                         if jsonItem['type'] == 'letter':
                                 payloadResume = gtk.Label( jsonItem['value'] )
-                                payloadResume.modify_font(pango.FontDescription("Courier Bold 60"))
+                                payloadResume.modify_font(pango.FontDescription(FONT_DESCRIPTION))
 
                         elif  jsonItem['type'] == 'image':
                                 payloadResume = gtk.Image()

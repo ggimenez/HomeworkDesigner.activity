@@ -56,6 +56,8 @@ from sugar.graphics.alert import ConfirmationAlert
 from sugar.graphics.alert import NotifyAlert
 
 
+FONT_DESCRIPTION = 'DejaVu Bold 40'
+FONT_DESCRIPTION_MODAL = "DejaVu Bold 10"
 
 
 class ModalWindowSelectExercise:
@@ -69,8 +71,7 @@ class ModalWindowSelectExercise:
 		
 		self.frameHBoxButton = gtk.Frame()
 		self.frameHBoxButton.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color("black"))
-		
-		
+			
 		self.scrolledWindow = gtk.ScrolledWindow()
 		
 		'''Disable interaction with parent'''
@@ -106,10 +107,11 @@ class ModalWindowSelectExercise:
 			image = gtk.Image()
 			image.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(exerciseType['imagePath']).scale_simple(300, 200, 2))
 			label = gtk.Label(exerciseType['label'])
-			label.modify_font(pango.FontDescription("Courier Bold 12"))
-			
+			label.modify_font(pango.FontDescription(FONT_DESCRIPTION_MODAL))
+			frameImage = gtk.Frame()			
+			frameImage.add(image)
 			vBox.pack_start(label, False,False,0)
-			vBox.pack_start(image, False,False,0)
+			vBox.pack_start(frameImage, False,False,0)
 			eventBox.add(vBox)
 			self.hBoxExercises.pack_start(eventBox, False,False,0)
 		
