@@ -100,6 +100,7 @@ class FindTheDifferentTemplate():
                         eventBox.filled = False
                 else:
                         eventBox.add(payload)
+			eventBox.set_size_request(LETTERS_SCALE[0], LETTERS_SCALE[1])
                         eventBox.filled = True
 
                 return eventBox
