@@ -17,40 +17,38 @@ Reference of colours codes :http://www.rapidtables.com/web/color/RGB_Color.htm
 '''
 COLOURS_ASSOCIATION = []
 #Marron
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#800000"), "available":True})
-#medium sea green
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#3CB371"), "available":True})
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#800000"), "available":True, "id":0})
+#red
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#FF0000"), "available":True, "id":1})
 #teal
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#008080"), "available":True})
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#008080"), "available":True, "id":2})
 #thistle
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#D8BFD8"), "available":True})
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#F5DEB3"), "available":True, "id":3})
 #dark sea green
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#8FBC8F"), "available":True})
-#forest green
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#228B22"), "available":True})
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#3CB371"), "available":True, "id":4})
+#purple
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#800080"), "available":True, "id":5})
 #chocolate
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#D2691E"), "available":True})
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#D2691E"), "available":True, "id":6})
 #Gray
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#808080"), "available":True})
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#808080"), "available":True, "id":7})
 
 
 IMAGES_SCALE = [100, 100]
 LETTERS_SCALE = [100, 100]
 
+FONT_DESCRIPTION = 'DejaVu Bold 40'
 
 
 class SearchTheSame():
-	
 		
 	def blankEventBox(self):
 		eventBox = gtk.EventBox()
 		eventBox.modify_bg(gtk.STATE_NORMAL, eventBox.get_colormap().alloc_color("white"))
 		blankLabel = gtk.Label("")
-		blankLabel.modify_font(pango.FontDescription("Courier Bold 50"))
+		blankLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION))
 		eventBox.add(blankLabel)
-		return eventBox
-	
-	
+		return eventBox	
 		
 	def setAllAvailableSelectionColour(self):
 		for colour in COLOURS_ASSOCIATION:
@@ -59,7 +57,16 @@ class SearchTheSame():
 	def getAvailableSelectionColour(self):
 		for colour in COLOURS_ASSOCIATION:
 			if colour['available']:
-					return colour
+				return colour
+	def getColourByID(self, id):
+		for colour in COLOURS_ASSOCIATION:
+			if colour['id'] == id:
+				return colour
+	def setUnavailableColourByID(self,id):
+		for colour in COLOURS_ASSOCIATION:
+			if colour['id'] == id:
+				colour['available'] = False
+				break
 
 	def setUnavailableColour(self, colour):
 		COLOURS_ASSOCIATION[COLOURS_ASSOCIATION.index(colour)]['available'] = False
@@ -76,7 +83,7 @@ class SearchTheSame():
 		oldPayload = eventBox.get_children()[0]
 		eventBox.remove(oldPayload)
 		blankLabel = gtk.Label("")
-		blankLabel.modify_font(pango.FontDescription("Courier Bold 50"))
+		blankLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION))
 		eventBox.add(blankLabel)
 		eventBox.show_all()
 		
@@ -86,20 +93,35 @@ class SearchTheSame():
 		payload = self.payloads[self.mapTable[rowIndex][columnIndex][2]]
 		if payload.type == "letter":
 			letterLabel = gtk.Label(payload.value)
-			letterLabel.modify_font(pango.FontDescription("Courier Bold 50"))
+			letterLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION))
 			eventBox.add(letterLabel)
 			eventBox.show_all()
 		elif payload.type == "image":
 			image = gtk.Image()
-                        image.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(\
-                                payload.value ).scale_simple(IMAGES_SCALE[0], IMAGES_SCALE[1], 2))
+			pixbuf = gtk.gdk.pixbuf_new_from_file(payload.value)
+                        pixbuf = gtk.gdk.Pixbuf.add_alpha(pixbuf,255,255,255 ,255)
+                        image.set_from_pixbuf(pixbuf)
 			eventBox.add(image)
 			eventBox.show_all()
-                        '''payloadResume.imageName = jsonItem['fileName']
-                        payloadResume.imageType = jsonItem['fileType
-                        args = {"imageName": jsonItem['fileName'],"imageType": jsonItem['fileType']}'''
-	
+        def repaintTable(self):
+		for itemIndexes in self.itemsIndexMatches:
+			self.mainWindows.getLogger().debug(self.mapTable)
+			firstEventBox = self.vBox.get_children()[itemIndexes[0]].get_children()[itemIndexes[1]]
+			self.changeEventBoxPayload(itemIndexes[0], itemIndexes[1], firstEventBox)
+			firstEventBox.disconnect( self.mapTable[itemIndexes[0]][itemIndexes[1]][3])
+			colour = self.getColourByID(itemIndexes[2])
+			firstEventBox.modify_bg(gtk.STATE_NORMAL, colour['colour'])
+			self.setUnavailableColourByID(itemIndexes[2])	
 
+			
+			rowPairEventBox = self.mapTable[itemIndexes[0]][itemIndexes[1]][0]
+			columnPairEventBox =  self.mapTable[itemIndexes[0]][itemIndexes[1]][1]
+			handlerIdPairEventBox =  self.mapTable[rowPairEventBox][columnPairEventBox][3]
+			pairEventBox = self.vBox.get_children()[rowPairEventBox].get_children()[columnPairEventBox]
+		        self.changeEventBoxPayload(rowPairEventBox, columnPairEventBox, pairEventBox)
+			pairEventBox.disconnect(handlerIdPairEventBox)
+			pairEventBox.modify_bg(gtk.STATE_NORMAL, colour['colour'])
+        
 	
 	def cellSelectedCallBack(self, eventBox, *args):
 		
@@ -129,13 +151,13 @@ class SearchTheSame():
 			if self.lastCellSelected != pairSelected:
 				
 				self.fakeUnselection(lastEventBoxSelected)
-				#lastEventBoxSelected.get_children()[0].set_text("")
 				self.lastCellSelected =[rowIndex,columnIndex]
 			
 			else :
 				handlerId = self.mapTable[rowIndex][columnIndex][3]
 				lastEventBoxHandlerId = self.mapTable[lastEventBoxSelectedRow][lastEventBoxSelectedColumn][3]
 				self.matches = self.matches + 1
+				self.itemsIndexMatches.append([rowIndex, columnIndex, colour["id"]])
 				eventBox.disconnect(handlerId)
 				lastEventBoxSelected.disconnect(lastEventBoxHandlerId)
 				self.lastCellSelected = None
@@ -144,22 +166,31 @@ class SearchTheSame():
 		if self.matches == 8:
 			self.mainWindows.exerciseCompletedCallBack()
 				
-		
+
 	
-	def getWindow(self, exercise, mainWindows):
+	def saveExerciseState(self):
+                self.mainWindows.getLogger().debug("Inside to saveExerciseState")
+                stateJson = {}
+                stateJson['itemsIndexMatches'] = self.itemsIndexMatches
+		stateJson['matches'] = self.matches
+                stateJson['lastCellSelected'] = self.lastCellSelected
+		return stateJson
 	
+	
+	def getWindow(self, exercise, mainWindows, stateJson):
 				
-			
 		self.mainWindows = mainWindows
 		self.mainWindows.getLogger().debug("Inside to getWindow()")
 		self.mainWindows.getLogger().debug(exercise)		
+		
 	
 		windowSearchTheSame= gtk.ScrolledWindow()
-		
+		windowSearchTheSame.exerciseInstance = self
+				
 		frameExercises = gtk.Frame() 
 		
 		
-		vBoxWindows = gtk.VBox(False, 10)
+		vBoxWindows = gtk.VBox(True, 10)
 		vBoxExercises = gtk.VBox(True, 10)
 		
 		
@@ -167,18 +198,22 @@ class SearchTheSame():
 		
 		items = exercise.items
 		
-		vBox = gtk.VBox(True, 0)
+		self.vBox = gtk.VBox(True, 0)
 		columns = 4
 		rows = 4
 		
-		rowsCount = 0
-		#self.storeSelectionState = self.createStoreSelection(exercise)
+		rowsCount = 0	
 		self.mapTable = exercise.mapTable
-		#self.addPayloadToMapTable(exercise['items'])
+		
 		self.setAllAvailableSelectionColour()
 		self.payloads = exercise.items
 		self.lastCellSelected = None
 		self.matches = 0
+		self.itemsIndexMatches = []
+		if stateJson is not None:
+			self.lastCellSelected = stateJson['lastCellSelected']
+			self.matches = stateJson['matches']
+			self.itemsIndexMatches = stateJson['itemsIndexMatches']
 		while rowsCount < (rows):
 			
 			hBox = gtk.HBox(True, 0)
@@ -188,14 +223,17 @@ class SearchTheSame():
 				eventBox = self.blankEventBox()
 				handlerId  = eventBox.connect("button-press-event", self.cellSelectedCallBack)
 				self.mapTable[rowsCount][countColumns].append(handlerId)
-				
+
 				hBox.pack_start(eventBox, True,True,5)
 				countColumns = countColumns + 1
 			
-			vBox.pack_start(hBox, True,True,5)
+			self.vBox.pack_start(hBox, True,True,5)
 			rowsCount = rowsCount + 1
-		
-		vBoxExercises.pack_start(vBox, False,False,0)
+		if stateJson is not None:
+			self.repaintTable()	
+
+	
+		vBoxExercises.pack_start(self.vBox, True,True,0)
 		vBoxWindows.pack_start(frameExercises, True,True,0)
 		windowSearchTheSame.add_with_viewport(vBoxWindows)
 		

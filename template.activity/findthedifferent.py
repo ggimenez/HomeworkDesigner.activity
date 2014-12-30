@@ -16,8 +16,17 @@ IMAGES_SCALE = [100, 100]
 LETTERS_SCALE = [100, 100]
 
 
+FONT_DESCRIPTION = "DejaVu Bold 40"
+
 class FindTheDifferent():
 	
+	def saveExerciseState(self):
+                self.mainWindows.getLogger().debug("Inside to saveExerciseState")
+                stateJson = {}
+                stateJson['selectionsState'] = self.selectionsState
+                return stateJson
+
+
 	def changeBackgroundColour(self, eventBox, colour):
 			eventBox.modify_bg(gtk.STATE_NORMAL, eventBox.get_colormap().alloc_color(colour))
 	
@@ -56,34 +65,38 @@ class FindTheDifferent():
 		
 		if itemElement.type == "letter":
 			label = gtk.Label(itemElement.value)
-			label.modify_font(pango.FontDescription("Courier Bold 40"))
+			label.modify_font(pango.FontDescription(FONT_DESCRIPTION))
 			eventBox.add(label)
 		elif itemElement.type == "image":
                         image = gtk.Image()
-                        image.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(\
-                                itemElement.value ).scale_simple(IMAGES_SCALE[0], IMAGES_SCALE[1], 2))
+			pixbuf = gtk.gdk.pixbuf_new_from_file(itemElement.value) 
+                        pixbuf = gtk.gdk.Pixbuf.add_alpha(pixbuf,255,255,255 ,255)
+			image.set_from_pixbuf(pixbuf)
                         eventBox.add(image)
                         eventBox.show_all()
-
-
-			
+	
 		return eventBox
 		
-	def getWindow(self, exercise, mainWindows):
+	def getWindow(self, exercise, mainWindows, stateJson):
 		
-		self.mainWindows = mainWindows
-			
+		self.mainWindows = mainWindows		
 		windowFindTheDifferent = gtk.ScrolledWindow()
+		windowFindTheDifferent.exerciseInstance = self
 		
 		frameExercises = gtk.Frame() 
 		
 		vBoxWindows = gtk.VBox(False, 5)
-		vBoxExercises = gtk.VBox(False, 5)
+		vBoxExercises = gtk.VBox(True, 5)
 		
 		frameExercises.add(vBoxExercises)
 		
 		items = exercise.items
-		self.selectionsState = [None]*len(items)
+		if stateJson is None:
+			self.selectionsState = [None]*len(items)
+		else:
+			self.mainWindows.getLogger().debug("Is a resume of exercises...")
+			self.selectionsState = stateJson['selectionsState']
+					
 		for index, item in enumerate(items):
 			
 			frame = gtk.Frame()
@@ -94,7 +107,10 @@ class FindTheDifferent():
 			count = 0
 			until = 3
 			different = random.randint(0,until)
-			self.selectionsState[index] = {"selectedIndex": -1,"differentInex":different}
+			if stateJson is None:
+				self.selectionsState[index] = {"selectedIndex": -1,"differentInex":different}
+			else:
+				different = self.selectionsState[index]['differentInex'] 
 			while count <= until:
 				
 				eventBox = gtk.EventBox()
@@ -111,7 +127,14 @@ class FindTheDifferent():
 			
 			frame.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color("orange"))
 			vBoxExercises.pack_start(frame, True,True,10)
-		
+	
+		if stateJson is not None:
+			self.mainWindows.getLogger().debug(self.selectionsState)
+			for index, selectionState in enumerate(self.selectionsState):
+				if selectionState['selectedIndex'] != -1:
+					self.mainWindows.getLogger().debug("Entra para pintar....")
+					currentEventBox = vBoxExercises.get_children()[index].get_children()[0].get_children()[selectionState['selectedIndex']]
+					self.changeBackgroundColour(currentEventBox, "orange")
 		
 		vBoxWindows.pack_start(frameExercises, True,True,0)
 		windowFindTheDifferent.add_with_viewport(vBoxWindows)

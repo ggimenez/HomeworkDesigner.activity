@@ -33,10 +33,8 @@ from sugar.activity.widgets import StopButton
 from sugar.activity.widgets import ShareButton
 
 
-
 import pygtk
 pygtk.require('2.0')
-import gtk
 import json
 from collections import namedtuple
 from array import *
@@ -45,6 +43,7 @@ import pango
 from simpleassociation import SimpleAssociation
 from findthedifferent import FindTheDifferent
 from searchthesame import SearchTheSame
+import os
 
 
 class ModalWindowDone:
@@ -81,17 +80,12 @@ class ModalWindowDone:
 		buttonImageContainer =  gtk.Image()
 		buttonImageContainer.set_from_stock(gtk.STOCK_OK, gtk.ICON_SIZE_BUTTON)		
 	
-		if self.parent.currentIndexExercise < (self.parent.amountExercises - 1):
-			doneImageContainer.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file("./activity-images/party.png").scale_simple(200, 200, 2))	
-			#buttonImageContainer.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file("./activity-images/left.png").scale_simple(50, 50, 2))
+		if self.parent.exercisesMatches < self.parent.amountExercises:
+			doneImageContainer.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file("./activity-images/party.png").scale_simple(200, 200, 2))		
 		else:
 			doneImageContainer.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file("./activity-images/prize.png").scale_simple(200, 200, 2))
-			#buttonImageContainer.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file("./activity-images/left.png").scale_simple(50, 50, 2))
-		
-		
-		
-		buttonOk = gtk.Button()
-		buttonOk.set_image(buttonImageContainer)
+				
+		buttonOk = gtk.Button(_("OK"))	
 		buttonOk.connect ("clicked", self.goBackButtonCallBack)
 		
 		vBox.pack_start(doneImageContainer, True,True,10)
@@ -113,13 +107,13 @@ class ModalWindowDone:
 
 
 class HomeWorkViewer(activity.Activity):
-	"""HelloWorldActivity class as specified in activity.info"""
+	
 
 	def __init__(self, handle):
 
 		self._logger = logging.getLogger('home-work-viewer')
                 self._logger.setLevel(logging.DEBUG)
-
+		
 
 		'''Obtenemos el JSON de la Actividad'''
 		json_data=open('json.txt')
@@ -144,10 +138,7 @@ class HomeWorkViewer(activity.Activity):
 		toolbar_box.toolbar.insert(title_entry, 1)
 		title_entry.show()
 
-		'''share_button = ShareButton(self)
-		toolbar_box.toolbar.insert(share_button, -1)
-		share_button.show()'''
-
+		
 		separator = gtk.SeparatorToolItem()
 		separator.props.draw = False
 		separator.set_expand(True)
@@ -155,12 +146,12 @@ class HomeWorkViewer(activity.Activity):
 		separator.show()
 
 		self.buttonBefore = ToolButton('go-previous')
-		self.buttonBefore.set_tooltip(_('Anterior'))
+		self.buttonBefore.set_tooltip(_('Back'))
 		self.buttonBefore.connect("clicked", self.backButtonCallBack)
 		toolbar_box.toolbar.insert(self.buttonBefore, 2)
 
 		self.buttonNext = ToolButton('go-next')
-		self.buttonNext.set_tooltip(_('Siguiente'))
+		self.buttonNext.set_tooltip(_('Next'))
 		self.buttonNext.connect("clicked", self.nextButtonCallBack)
 		toolbar_box.toolbar.insert(self.buttonNext, 3)
 
@@ -171,21 +162,24 @@ class HomeWorkViewer(activity.Activity):
 		self.set_toolbar_box(toolbar_box)
 		toolbar_box.show()
 
-		self.amountExercises = len(self.activity.exercises)
-		self.currentIndexExercise = -1
-		
-		self.nextButtonCallBack(None, None)
-
-
-		vBoxGeneral = gtk.VBox(False, 2)
-		self.set_canvas(vBoxGeneral)
+		self.vBoxMain = gtk.VBox(True, 2)
+		self.set_canvas(self.vBoxMain)
 		self.show_all()
-		
 	
-	def exerciseCompletedCallBack(self):
+		jsonState = None		
+		if os.path.exists('exerciseState.txt'):		
+			with open('exerciseState.txt', 'r') as stateFile:
+				jsonState = json.load(stateFile)			
+			stateFile.close()
+		self.createWindowExercises(jsonState)
 			
-			self.modalDoneWindow = ModalWindowDone(self)
-			self.modalDoneWindow.show()	
+			
+	def exerciseCompletedCallBack(self):
+		if self.amountExercises > self.exercisesMatches:
+			self.exercisesMatches = self.exercisesMatches + 1	
+		
+		self.modalDoneWindow = ModalWindowDone(self)
+		self.modalDoneWindow.show()	
 	
 	def manageBackNextButtons(self):
 		self.getLogger().debug("Inside to manageBackNextButtons")
@@ -208,42 +202,100 @@ class HomeWorkViewer(activity.Activity):
 
 
 	def nextButtonCallBack(self, button, *args):
-		self.currentIndexExercise = self.currentIndexExercise + 1
-		self.createNewWindowExercise()
+	
+		self.vBoxMain.get_children()[self.currentIndexExercise].hide()
+                self.currentIndexExercise = self.currentIndexExercise + 1
+		
+                self.vBoxMain.get_children()[self.currentIndexExercise].show_all()
+                self.manageBackNextButtons()
+
 		
 	
 	def backButtonCallBack(self, button, *args):
-		self.currentIndexExercise = self.currentIndexExercise - 1
-		self.createNewWindowExercise()
+		self.vBoxMain.get_children()[self.currentIndexExercise].hide()
+                self.currentIndexExercise = self.currentIndexExercise - 1
+                self.vBoxMain.get_children()[self.currentIndexExercise].show_all()
+                self.manageBackNextButtons()
+
 	
-	def createNewWindowExercise(self):
-		newExercise = None
-		newWindowExercise = None
-		if self.activity.exercises[self.currentIndexExercise].codeType == 1:
-			newExercise = SimpleAssociation()
-			newWindowExercise = newExercise.getWindow(self.activity.exercises[self.currentIndexExercise], self)
-		elif self.activity.exercises[self.currentIndexExercise].codeType == 2:
-			newExercise = FindTheDifferent()
-			newWindowExercise = newExercise.getWindow(self.activity.exercises[self.currentIndexExercise], self)
-		elif self.activity.exercises[self.currentIndexExercise].codeType == 3:
-			newExercise = SearchTheSame()
-			newWindowExercise = newExercise.getWindow(self.activity.exercises[self.currentIndexExercise], self)
-			
-		vBoxMain = self.get_children()[0]
-		if len(vBoxMain.get_children()) > 1 :
-			oldWindowExercise = vBoxMain.get_children()[1]
-			vBoxMain.remove(oldWindowExercise)
-			
-		vBoxMain.pack_start(newWindowExercise, True, True, 0)
+	def createWindowExercises(self, stateJson):
 		
-		self.manageBackNextButtons()
-		self.show_all()
+		self._logger.debug("inside to createNewWindowExercise")		
+             
+		self.amountExercises = len(self.activity.exercises)
+		self.currentIndexExercise = 0
+		self.exercisesMatches = 0		
 	
+                index = 0
+		while index < self.amountExercises:
+                        newExercise = None
+                	newWindowExercise = None
+			stateExercise = None
+			if stateJson is not None:
+				stateExercise = stateJson['exercises'][index]
+                	if self.activity.exercises[index].codeType  == 1:
+                        	newExercise = SimpleAssociation()
+                        	newWindowExercise = newExercise.getWindow(self.activity.exercises[index], self, stateExercise)  
+                	elif self.activity.exercises[index].codeType  == 2:
+                        	newExercise = FindTheDifferent()
+                        	newWindowExercise = newExercise.getWindow(self.activity.exercises[index] ,self, stateExercise)
+                	elif self.activity.exercises[index].codeType  == 3:
+                        	newExercise = SearchTheSame()
+                        	newWindowExercise = newExercise.getWindow(self.activity.exercises[index] ,self, stateExercise)
+
+			newWindowExercise.hide()
+                	self.vBoxMain.pack_start(newWindowExercise, True, True, 0)
+               		index = index + 1
+		if stateJson is None:
+			self.vBoxMain.get_children()[self.currentIndexExercise].show_all()		
+		else:
+			self.exercisesMatches = stateJson['exercisesMatches']
+			self.moveToExerciseIndex(stateJson['currentIndexExercise'])
+		self.manageBackNextButtons()		
+
 	def read_file(self, tmp_file):
-		pass	
+		pass
+		
 	def write_file(self, tmp_file):
-		pass	
-	
+		self.getLogger().debug("Inside to write_file")
+                self.saveActivityState()
+                
+		
 	def getLogger(self):
                 return self._logger
+	
+	def saveActivityState(self):
+                self.getLogger().debug("inside to saveActivityState")
+                allExerciseWindows = self.vBoxMain.get_children()
+                theJson = {}
+                theJson["name"] = "JSON de prueba"
+                theJson['currentIndexExercise'] = self.currentIndexExercise
+                theJson['exercisesMatches'] = self.exercisesMatches
+		theJson["exercises"] = []
+                itemsToCopy = []
+                activityName = self.metadata.get('title')
+                for index, exerciseWindow in enumerate( allExerciseWindows ):
+                                exerciseJson = exerciseWindow.exerciseInstance.saveExerciseState()
+                                theJson['exercises'].append(exerciseJson)
+
+		
+                self.getLogger().debug(theJson)
+                with open('exerciseState.txt', 'w+') as stateFile:
+			json.dump(theJson,stateFile )
+		stateFile.close()
+	 
+
+	def moveToExerciseIndex(self, indexExercise):
+                self.getLogger().debug("Inside to moveToExerciseIndex")
+		vBoxMain = self.vBoxMain
+                allWindowsExercises = vBoxMain.get_children()
+                for index, windowExercise in enumerate(allWindowsExercises):
+                        self.getLogger().debug(index)
+			self.getLogger().debug(indexExercise)
+			if index != indexExercise:
+                                windowExercise.hide()
+                        else:
+                                windowExercise.show_all()
+                self.currentIndexExercise = indexExercise
+                self.manageBackNextButtons()
 
