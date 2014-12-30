@@ -235,7 +235,7 @@ class SearchTheSameTemplate():
 		
 
 	
-		vBoxExercises.pack_start(vBox, False,False,0)
+		vBoxExercises.pack_start(vBox, True,True,0)
 		vBoxWindows.pack_start(frameExercises, True,True,0)
 		windowSearchTheSame.add_with_viewport(vBoxWindows)
 		

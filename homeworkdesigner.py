@@ -370,7 +370,7 @@ class HomeWorkDesigner(activity.Activity):
 		#exec
 		activityInfoData.append("exec = sugar-activity homeworkviewer.HomeWorkViewer")
 		#icon
-		activityInfoData.append("icon = activity-helloworld")
+		activityInfoData.append("icon = homework-viewer")
 		#lincense
 		activityInfoData.append("license = GPLv2+")
 		with open('./template.activity/activity/activity.info', 'w') as infofile:
@@ -395,7 +395,7 @@ class HomeWorkDesigner(activity.Activity):
 		self._alert_notify(_("Export as activity"), _("It has been exported successfully"))
 		
 		#delete the .xo created when is saved in the datastore
-		os.remove(self.get_activity_root() + '/instance/' + activityNameSpacesLess + '.activity.xo')			
+		#os.remove(self.get_activity_root() + '/instance/' + activityNameSpacesLess + '.activity.xo')			
 
 		self.getLogger().debug(theJson)
 		self.getLogger().debug(itemsToCopy)
