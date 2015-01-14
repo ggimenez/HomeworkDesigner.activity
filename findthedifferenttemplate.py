@@ -19,7 +19,12 @@ from modalwindowselectItem import ModalWindowSelectItem
 IMAGES_SCALE = [100, 100]
 LETTERS_SCALE = [100, 100]
 
-FONT_DESCRIPTION = 'DejaVu Bold 40'
+EVENTBOX_SCALE = [100,100]
+
+FONT_DESCRIPTION_BIG = 'DejaVu Bold 40'
+FONT_DESCRIPTION_MEDIUM = 'DejaVu Bold 20'
+
+MAXIMUM_LETTER_LENGTH_BIG = 8
 
 class FindTheDifferentTemplate():
 	
@@ -68,7 +73,10 @@ class FindTheDifferentTemplate():
 		itemCopy = None
 		if itemType == "text":
 			itemCopy = gtk.Label(item.get_text())
-			itemCopy.modify_font(pango.FontDescription(FONT_DESCRIPTION))
+			if len(item.get_text()) <= MAXIMUM_LETTER_LENGTH_BIG:
+				itemCopy.modify_font(pango.FontDescription(FONT_DESCRIPTION_BIG))
+			else:				
+				itemCopy.modify_font(pango.FontDescription(FONT_DESCRIPTION_MEDIUM))
 		elif itemType == "image":		
 			itemCopy = gtk.image_new_from_pixbuf(item.get_pixbuf())
 			itemCopy.imageName = args['imageName']
@@ -90,17 +98,18 @@ class FindTheDifferentTemplate():
 
 	def createEventBox(self, payload):
                 eventBox = gtk.EventBox()
-                eventBox.modify_bg(gtk.STATE_NORMAL, eventBox.get_colormap().alloc_color("white"))
+                eventBox.set_size_request(EVENTBOX_SCALE[0], EVENTBOX_SCALE[1])
+		eventBox.modify_bg(gtk.STATE_NORMAL, eventBox.get_colormap().alloc_color("white"))
 
                 if payload is None:
                         blankLabel = gtk.Label("")
-                        blankLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION))
+                        blankLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION_BIG))
                         eventBox.add(blankLabel)
-                        eventBox.set_size_request(LETTERS_SCALE[0], LETTERS_SCALE[1])
+                        #eventBox.set_size_request(LETTERS_SCALE[0], LETTERS_SCALE[1])
                         eventBox.filled = False
                 else:
                         eventBox.add(payload)
-			eventBox.set_size_request(LETTERS_SCALE[0], LETTERS_SCALE[1])
+			#eventBox.set_size_request(LETTERS_SCALE[0], LETTERS_SCALE[1])
                         eventBox.filled = True
 
                 return eventBox
@@ -114,7 +123,10 @@ class FindTheDifferentTemplate():
                 if jsonItem["filled"] is True:
                         if jsonItem['type'] == 'letter':
                                 payloadResume = gtk.Label( jsonItem['value'] )
-                                payloadResume.modify_font(pango.FontDescription(FONT_DESCRIPTION))
+                                if len(jsonItem['value']) <= MAXIMUM_LETTER_LENGTH_BIG:
+					payloadResume.modify_font(pango.FontDescription(FONT_DESCRIPTION_BIG))
+				else:	
+					payloadResume.modify_font(pango.FontDescription(FONT_DESCRIPTION_MEDIUM))
 
                         elif  jsonItem['type'] == 'image':
                                 payloadResume = gtk.Image()
@@ -124,7 +136,11 @@ class FindTheDifferentTemplate():
                                 payloadResume.imageType = jsonItem['fileType']
                 return payloadResume
 	
-	def getWindow(self, mainWindows, jsonState):
+	def changeLevel(self, newLevel):
+                newWindow = self.getWindow(self.mainWindows, None, newLevel)
+                return newWindow
+	
+	def getWindow(self, mainWindows, jsonState, level):
 		
 		self.mainWindows = mainWindows
 			
@@ -138,8 +154,16 @@ class FindTheDifferentTemplate():
 		self.vBoxExercises = gtk.VBox(False, 5)
 		
 		frameExercises.add(self.vBoxExercises)
+		self.level = level
+		if jsonState is not None:
+			self.level = jsonState['level']
+		index = None
+		if self.level is 1:	
+			indexs = [0,1]
+		elif self.level is 2:
+			indexs = [0,1,2,3,4]
+
 		
-		indexs = [0,1,2,3,4]
 		for index in indexs:
 			
 			frame = gtk.Frame()
@@ -166,7 +190,7 @@ class FindTheDifferentTemplate():
 				else:
 					eventBox.different = False				
 			
-				hBox.pack_start(eventBox, False,True,0)
+				hBox.pack_start(eventBox, True,True,0)
 				count = count + 1
 			
 			
@@ -174,7 +198,7 @@ class FindTheDifferentTemplate():
 			self.vBoxExercises.pack_start(frame, True,True,10)
 		
 		
-		vBoxWindows.pack_start(frameExercises, True,True,0)
+		vBoxWindows.pack_start(frameExercises, False,False,10)
 		windowFindTheDifferent.add_with_viewport(vBoxWindows)
 		
 		return windowFindTheDifferent
@@ -213,7 +237,8 @@ class FindTheDifferentTemplate():
 	def parseToJson(self, isStop, pathToSaveItemsStop):
         	theExerciseJson = {}
                 theExerciseJson['codeType'] = 2
-                theExerciseJson['items'] = []
+                theExerciseJson['level'] = self.level
+		theExerciseJson['items'] = []
                 itemsToCopy = []
                 for hFrame in self.vBoxExercises.get_children():
 			self.mainWindows.getLogger().debug("Hframe child: ")

@@ -55,7 +55,8 @@ class ModalWindowSelectItem:
 		self.hBoxItem =  gtk.HBox(True, 10)
 		
 		entry = gtk.Entry()
-                eventBoxImageItem = gtk.EventBox()
+                entry.set_max_length(16)
+		eventBoxImageItem = gtk.EventBox()
 
 
 
@@ -111,7 +112,9 @@ class ModalWindowSelectItem:
 		self.modalWindow.add(self.vBoxModalWindow)
 	
 	def textEnterCallBack(self, entry, *args):
-		
+	
+		self.parent.getLogger().debug("Inside in textEnterCallBack : ")
+	
 		imageEventBox = args[0]
 		oldImage = imageEventBox.get_children()[0]
 		imageEventBox.remove(oldImage)
@@ -120,12 +123,14 @@ class ModalWindowSelectItem:
 		imageEventBox.add(imagePlaceHolder)		
 		imageEventBox.show_all()
 		
-		self.parent.getLogger().debug("Inside in textEnterCallBack : ")
 		self.parent.getLogger().debug(args)
 		self.parent.getLogger().debug(entry.get_text())
-		self.itemHandler = self.manageTextSelected		
-		self.itemSelected = entry.get_text()		
-	
+		if entry.get_text():
+			self.itemHandler = self.manageTextSelected		
+			self.itemSelected = entry.get_text()		
+		else:
+			self.itemHandler = None
+			self.itemSelected = None	
 
 
 	def manageTextSelected(self):
@@ -164,10 +169,8 @@ class ModalWindowSelectItem:
 			
 			imageSelectedCopy = gtk.Image()
 			imageSelectedCopy.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(self.path).scale_simple(IMAGES_SCALE[0], IMAGES_SCALE[1], 2))
-			imageSelectedCopy.imageName = self.jobject.get_metadata().get('title')			
-			
+			imageSelectedCopy.imageName = self.jobject.get_metadata().get('title')				
 			imageMimeType = self.jobject.get_metadata().get('mime_type').split("/")
-	
 			imageSelectedCopy.imageType = imageMimeType[1]	
 			
 	
@@ -184,8 +187,9 @@ class ModalWindowSelectItem:
 	def leaveNotifyEventBoxCallBack(self, eventBox, *args):
 		eventBox.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color("gray")) 
 	
-        def okButtonCallBack(self, eventBox, *args):
-		self.itemHandler()	
+        def okButtonCallBack(self, button, *args):	
+		if hasattr(self, 'itemHandler') and self.itemHandler is not None:
+			self.itemHandler()	
 		self.modalWindow.destroy()
 	
         def cancelButtonCallBack(self, button,*args):

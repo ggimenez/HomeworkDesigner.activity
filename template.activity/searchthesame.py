@@ -11,23 +11,22 @@ import pango
 
 import random
 
-
 '''Color Selection association
 Reference of colours codes :http://www.rapidtables.com/web/color/RGB_Color.htm
 '''
 COLOURS_ASSOCIATION = []
-#Marron
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#800000"), "available":True, "id":0})
-#red
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#FF0000"), "available":True, "id":1})
+#royal blue
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#4169E1"), "available":True, "id":0})
+#medium sea green
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#3CB371"), "available":True, "id":1})
 #teal
 COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#008080"), "available":True, "id":2})
-#thistle
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#F5DEB3"), "available":True, "id":3})
+#sienna
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#A0522D"), "available":True, "id":3})
 #dark sea green
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#3CB371"), "available":True, "id":4})
-#purple
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#800080"), "available":True, "id":5})
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#BA55D3"), "available":True, "id":4})
+#wheat
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#F5DEB3"), "available":True, "id":5})
 #chocolate
 COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#D2691E"), "available":True, "id":6})
 #Gray
@@ -37,16 +36,19 @@ COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#808080"), "available":True,
 IMAGES_SCALE = [100, 100]
 LETTERS_SCALE = [100, 100]
 
-FONT_DESCRIPTION = 'DejaVu Bold 40'
+FONT_DESCRIPTION_BIG = 'DejaVu Bold 40'
+FONT_DESCRIPTION_MEDIUM = 'DejaVu Bold 20'
+
+EVENTBOX_SCALE = [100,100]
 
 
 class SearchTheSame():
 		
 	def blankEventBox(self):
 		eventBox = gtk.EventBox()
+		eventBox.set_size_request(EVENTBOX_SCALE[0], EVENTBOX_SCALE[1])
 		eventBox.modify_bg(gtk.STATE_NORMAL, eventBox.get_colormap().alloc_color("white"))
 		blankLabel = gtk.Label("")
-		blankLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION))
 		eventBox.add(blankLabel)
 		return eventBox	
 		
@@ -62,6 +64,7 @@ class SearchTheSame():
 		for colour in COLOURS_ASSOCIATION:
 			if colour['id'] == id:
 				return colour
+	
 	def setUnavailableColourByID(self,id):
 		for colour in COLOURS_ASSOCIATION:
 			if colour['id'] == id:
@@ -72,8 +75,7 @@ class SearchTheSame():
 		COLOURS_ASSOCIATION[COLOURS_ASSOCIATION.index(colour)]['available'] = False
 	
 	
-	def fakeSelection(self, eventBox):
-		
+	def fakeSelection(self, eventBox):	
 		colour = self.getAvailableSelectionColour()
 		eventBox.modify_bg(gtk.STATE_NORMAL, colour['colour'])
 		return colour
@@ -83,7 +85,6 @@ class SearchTheSame():
 		oldPayload = eventBox.get_children()[0]
 		eventBox.remove(oldPayload)
 		blankLabel = gtk.Label("")
-		blankLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION))
 		eventBox.add(blankLabel)
 		eventBox.show_all()
 		
@@ -93,13 +94,16 @@ class SearchTheSame():
 		payload = self.payloads[self.mapTable[rowIndex][columnIndex][2]]
 		if payload.type == "letter":
 			letterLabel = gtk.Label(payload.value)
-			letterLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION))
+			if len(payload.value) <= 8:
+				letterLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION_BIG))
+			else:
+				letterLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION_MEDIUM))
+
 			eventBox.add(letterLabel)
 			eventBox.show_all()
 		elif payload.type == "image":
 			image = gtk.Image()
 			pixbuf = gtk.gdk.pixbuf_new_from_file(payload.value)
-                        pixbuf = gtk.gdk.Pixbuf.add_alpha(pixbuf,255,255,255 ,255)
                         image.set_from_pixbuf(pixbuf)
 			eventBox.add(image)
 			eventBox.show_all()
@@ -163,19 +167,20 @@ class SearchTheSame():
 				self.lastCellSelected = None
 				self.setUnavailableColour(colour)
 				
-		if self.matches == 8:
+		if self.matches == self.matchesToDo:
 			self.mainWindows.exerciseCompletedCallBack()
-				
-
-	
+			
 	def saveExerciseState(self):
                 self.mainWindows.getLogger().debug("Inside to saveExerciseState")
                 stateJson = {}
                 stateJson['itemsIndexMatches'] = self.itemsIndexMatches
+		stateJson['matchesToDo'] = self.matchesToDo
 		stateJson['matches'] = self.matches
                 stateJson['lastCellSelected'] = self.lastCellSelected
 		return stateJson
-	
+
+	def disconnectEventBoxs(self):
+		pass	
 	
 	def getWindow(self, exercise, mainWindows, stateJson):
 				
@@ -199,9 +204,16 @@ class SearchTheSame():
 		items = exercise.items
 		
 		self.vBox = gtk.VBox(True, 0)
-		columns = 4
-		rows = 4
+		self.level = exercise.level
 		
+		if self.level is 1:
+			rows = 4
+			columns = 2
+			self.matchesToDo = 4
+		elif self.level is 2:
+			rows = 4
+			columns = 4
+			self.matchesToDo = 8		
 		rowsCount = 0	
 		self.mapTable = exercise.mapTable
 		
@@ -233,8 +245,8 @@ class SearchTheSame():
 			self.repaintTable()	
 
 	
-		vBoxExercises.pack_start(self.vBox, True,True,0)
-		vBoxWindows.pack_start(frameExercises, True,True,0)
+		vBoxExercises.pack_start(self.vBox, True,False,0)
+		vBoxWindows.pack_start(frameExercises, True,False,0)
 		windowSearchTheSame.add_with_viewport(vBoxWindows)
 		
 		return windowSearchTheSame

@@ -21,10 +21,18 @@ from gettext import gettext as _
 IMAGES_SCALE = [100, 100]
 LETTERS_SCALE = [100, 100]
 
+EVENTBOX_SCALE = [100,100]
+
+
 '''Curren item selection association'''
 SELECTED_COLOUR = gtk.gdk.Color("#FFFF00")
 
-FONT_DESCRIPTION = 'DejaVu Bold 40'
+#FONT_DESCRIPTION = 'DejaVu Bold 40'
+FONT_DESCRIPTION_BIG = 'DejaVu Bold 40'
+FONT_DESCRIPTION_MEDIUM = 'DejaVu Bold 20'
+
+MAXIMUM_LETTER_LENGTH_BIG = 8
+
 
 class SimpleAssociationTemplate():
 
@@ -34,8 +42,11 @@ class SimpleAssociationTemplate():
 		payloadResume = None
 		if jsonItem["filled"] is True:
                 	if jsonItem['type'] == 'letter':
-                        	payloadResume = gtk.Label( jsonItem['value'] )
-				payloadResume.modify_font(pango.FontDescription(FONT_DESCRIPTION))
+				payloadResume = gtk.Label( jsonItem['value'] )
+				if len(jsonItem['value']) <= MAXIMUM_LETTER_LENGTH_BIG:
+					payloadResume.modify_font(pango.FontDescription(FONT_DESCRIPTION_BIG))
+				else:									
+					payloadResume.modify_font(pango.FontDescription(FONT_DESCRIPTION_MEDIUM))
 
                         elif  jsonItem['type'] == 'image':
                         	payloadResume = gtk.Image()
@@ -44,9 +55,12 @@ class SimpleAssociationTemplate():
 				payloadResume.imageName = jsonItem['fileName']
 				payloadResume.imageType = jsonItem['fileType']
 		return payloadResume
-
 	
-	def getWindow(self, mainWindows, jsonState):
+	def changeLevel(self, newLevel):
+		newWindow = self.getWindow(self.mainWindows, None, newLevel)
+		return newWindow
+	
+	def getWindow(self, mainWindows, jsonState, level):
 	        	
 		self.mainWindows = mainWindows
 		windowSimpleAssociation = gtk.ScrolledWindow()
@@ -57,16 +71,39 @@ class SimpleAssociationTemplate():
 	
 		vBoxWindows = gtk.VBox(False, 5)
 		hBoxExercises = gtk.HBox(True, 50)
-		self.vBoxOptions = gtk.VBox(True, 5)
-		self.vBoxCorrespondences = gtk.VBox(True, 5)
 		
+		self.vBoxOptions = gtk.VBox(False, 5)
+		self.vBoxOptions.set_border_width(10)
+
+		self.vBoxCorrespondences = gtk.VBox(False, 5)
+		self.vBoxCorrespondences.set_border_width(10)		
+	
 		frameExercises = gtk.Frame() 
 		frameExercises.add(hBoxExercises)
 	
 		windowSimpleAssociation.exerciseInstance = self
 		
 		itemCount = 1
-		while itemCount <= 5:
+		frameVBoxOptions = gtk.Frame()
+		#dark orange
+		frameVBoxOptions.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color("#FF8C00"))
+                frameVBoxOptions.set_border_width(10)
+                frameVBoxCorrespondences = gtk.Frame()
+                frameVBoxCorrespondences.set_border_width(10)
+		#dark slate blue
+		frameVBoxCorrespondences.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color('#483D8B'))
+		rows = None
+				
+		self.level = level
+		if jsonState is not None:		
+			self.level = jsonState['level']
+		
+		if self.level is 1:
+			rows = 2
+		elif self.level is 2:
+			rows = 5
+		
+		while itemCount <= rows:
 			payloadOptionResume = None
 			payloadCorrespondenceResume = None
 			if jsonState is not None:
@@ -85,9 +122,10 @@ class SimpleAssociationTemplate():
 			self.addEventBoxToVBox(eventBoxCorrespondence, self.vBoxCorrespondences)
 	
 			itemCount = itemCount + 1
-			
-		hBoxExercises.pack_start(self.vBoxOptions, False,True,50)
-		hBoxExercises.pack_start(self.vBoxCorrespondences, False,True,50)
+		frameVBoxOptions.add(self.vBoxOptions)
+                frameVBoxCorrespondences.add(self.vBoxCorrespondences)	
+		hBoxExercises.pack_start(frameVBoxOptions, False,True,50)
+		hBoxExercises.pack_start(frameVBoxCorrespondences, False,True,50)
 		vBoxWindows.pack_start(frameExercises, True,True,0)
 		
 		windowSimpleAssociation.add_with_viewport(vBoxWindows)
@@ -109,7 +147,11 @@ class SimpleAssociationTemplate():
 		self.currentEventBoxSelected.filled = True 		
 
 		if itemType == "text":
-			item.modify_font(pango.FontDescription(FONT_DESCRIPTION))
+			if len(item.get_text()) <= MAXIMUM_LETTER_LENGTH_BIG:
+				item.modify_font(pango.FontDescription(FONT_DESCRIPTION_BIG))
+			else:
+				item.modify_font(pango.FontDescription(FONT_DESCRIPTION_MEDIUM))
+
 	
 		self.currentEventBoxSelected.add(item)
 		self.currentEventBoxSelected.show_all()
@@ -122,13 +164,14 @@ class SimpleAssociationTemplate():
 		
 	def createEventBox(self, payload):
 		eventBox = gtk.EventBox()
+		eventBox.set_size_request(EVENTBOX_SCALE[0], EVENTBOX_SCALE[1])
 		eventBox.modify_bg(gtk.STATE_NORMAL, eventBox.get_colormap().alloc_color("white"))
 		
 		if payload is None:
 			blankLabel = gtk.Label("")
-			blankLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION))
+			#blankLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION))
 			eventBox.add(blankLabel)
-			eventBox.set_size_request(LETTERS_SCALE[0], LETTERS_SCALE[1])	        
+			#eventBox.set_size_request(LETTERS_SCALE[0], LETTERS_SCALE[1])	        
 			eventBox.filled = False
 		else:
 			eventBox.add(payload)
@@ -139,7 +182,8 @@ class SimpleAssociationTemplate():
 	def parseToJson(self, isStop, pathToSaveItemsStop):
 		theExerciseJson = {}
                 theExerciseJson['codeType'] = 1
-                theExerciseJson['name'] = "Asociacion Simple" 
+                theExerciseJson['name'] = "Asociacion Simple"
+		theExerciseJson['level'] = self.level 
 		theExerciseJson['items'] = []
 		itemsToCopy = []
 		for index, option in enumerate(self.vBoxOptions.get_children()):

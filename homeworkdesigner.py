@@ -32,6 +32,8 @@ from sugar.activity.widgets import TitleEntry
 from sugar.activity.widgets import StopButton
 from sugar.activity.widgets import ShareButton
 from sugar.graphics.toolbutton import ToolButton
+from sugar.graphics.toolcombobox import ToolComboBox
+from sugar.graphics.combobox import ComboBox
 
 from sugar.graphics.alert import Alert
 
@@ -123,7 +125,7 @@ class ModalWindowSelectExercise:
 		buttonOk.connect ("clicked", self.cancelButtonCallBack)
 		buttonOk.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color("black"))
 		hBoxButton = gtk.HBox(True,0)
-		hBoxButton.pack_start(buttonOk, False,False	,0)
+		hBoxButton.pack_start(buttonOk, False,False,0)
 		
 		self.scrolledWindow.add_with_viewport(self.hBoxExercises)
 		self.frameWindowScrolled.add(self.scrolledWindow)
@@ -146,7 +148,7 @@ class ModalWindowSelectExercise:
 		#self.parent._logger.debug(args)
 		codeExerciseType = args[1]['code']
 		self.modalWindow.destroy()
-		self.parent.createNewExerciseType(codeExerciseType, None)
+		self.parent.createNewExerciseType(codeExerciseType, None, None)
 		
 		
 	def show(self):
@@ -194,33 +196,47 @@ class HomeWorkDesigner(activity.Activity):
 		self.buttonNext.set_tooltip(_('Next'))
 		self.buttonNext.connect("clicked", self.nextButtonCallBack)
 		toolbar_box.toolbar.insert(self.buttonNext, 3)
-		
+	
 		labelItem = gtk.ToolItem() 
 		self.labelExercisePosition = gtk.Label("")
 		labelItem.add(self.labelExercisePosition)
 		toolbar_box.toolbar.insert(labelItem, 4)
-	
+		
+		separatorBeforeLevels = gtk.SeparatorToolItem()
+		separatorBeforeLevels.props.draw = False
+		separatorBeforeLevels.set_expand(True)
+		toolbar_box.toolbar.insert(separatorBeforeLevels, 5)	
 
+		self.comboBoxLevels = ComboBox()
+		#self.comboBoxLevels.append_item(0, "--")
+		self.comboBoxLevels.append_item(1, 'One')
+		self.comboBoxLevels.append_item(2, 'Two')	
+		self.comboBoxLevels.connect('changed', self.comboBoxChanged)
+			
+		toolComboBoxLevels = ToolComboBox(self.comboBoxLevels)
+		toolComboBoxLevels.label.set_text("Level: ")	
+		toolbar_box.toolbar.insert(toolComboBoxLevels, 6)		
+	
 		separator2 = gtk.SeparatorToolItem()
                 separator2.props.draw = False
                 separator2.set_expand(True)
-                toolbar_box.toolbar.insert(separator2, 5)
+                toolbar_box.toolbar.insert(separator2, 7)
                 separator2.show()
 	
 		self.newButton = ToolButton('add')
 		self.newButton.set_tooltip(_('New Exercise'))
 		self.newButton.connect("clicked", self.newExerciseCallBack)
-		toolbar_box.toolbar.insert(self.newButton, 6)
+		toolbar_box.toolbar.insert(self.newButton, 8)
 	
 		self.deleteButton = ToolButton('edit-delete')
 		self.deleteButton.set_tooltip(_('Delete Exercise'))
 		self.deleteButton.connect("clicked", self.buttonDeleteExerciseCallBack)
-		toolbar_box.toolbar.insert(self.deleteButton, 7)
+		toolbar_box.toolbar.insert(self.deleteButton, 9)
 		
 		self.exportButton = ToolButton('document-save')
 		self.exportButton.set_tooltip(_('Export Exercise'))
 		self.exportButton.connect("clicked", self.exportExerciseCallBack)
-		toolbar_box.toolbar.insert(self.exportButton, 8)
+		toolbar_box.toolbar.insert(self.exportButton, 10)
 	
 		stop_button = StopButton(self)
 		toolbar_box.toolbar.insert(stop_button, -1)
@@ -235,8 +251,36 @@ class HomeWorkDesigner(activity.Activity):
 		self.amountExercises = 0		
 		self.currentExerciseIndex = -1		
 		self.manageNevegationButtons()
+		self.manageComboBoxDisplay()
 		
 		self.show_all()
+	
+	
+	def comboBoxChanged(self, combo, *args):
+		self.getLogger().debug("Inside to comboBoxChanged method:")
+		self.getLogger().debug(args)
+		self.getLogger().debug(self.comboBoxLevels.get_value())
+		self.getLogger().debug(self.comboBoxLevels.get_active_item())
+		newLevel = self.comboBoxLevels.get_value()
+		if self.currentExerciseIndex is not -1:
+			currentWindow = self.vBoxMain.get_children()[self.currentExerciseIndex]
+			self.getLogger().debug( currentWindow.exerciseInstance.level )
+			if currentWindow.exerciseInstance.level is not newLevel:
+				newWindow = currentWindow.exerciseInstance.changeLevel(newLevel)
+				self.deleteExerciseCallBack()
+				self.createNewExerciseType(None, None, newWindow)
+				
+
+	def manageComboBoxDisplay(self):
+		self.getLogger().debug("Inside to manageComboBoxDisplay")
+		if self.amountExercises > 0:
+			self.comboBoxLevels.set_sensitive(True)
+			currentWindow = self.vBoxMain.get_children()[self.currentExerciseIndex]
+			self.getLogger().debug(currentWindow.exerciseInstance.level)
+			self.comboBoxLevels.set_active(currentWindow.exerciseInstance.level - 1)
+		else:
+			self.comboBoxLevels.set_sensitive(False)
+			self.comboBoxLevels.set_active(-1)	
 
 	def manageNevegationButtons(self):
 		self.getLogger().debug("inside to manageNevegationButtons ")
@@ -275,6 +319,7 @@ class HomeWorkDesigner(activity.Activity):
                 self.currentExerciseIndex = self.currentExerciseIndex + 1
                 self.vBoxMain.get_children()[self.currentExerciseIndex].show()
                 self.manageNevegationButtons()
+		self.manageComboBoxDisplay()
 
 		
 	def getLogger(self):
@@ -295,7 +340,8 @@ class HomeWorkDesigner(activity.Activity):
 			else:
 				windowExercise.show_all()
 		self.currentExerciseIndex = indexExercise
-		self.manageNevegationButtons()	
+		self.manageNevegationButtons()
+		self.manageComboBoxDisplay()	
 	
 	def buttonDeleteExerciseCallBack(self, button, *args):
 		self._alert_confirmation(self.deleteExerciseCallBack, _("Remove exercise"), _("Are you sure ?"))		
@@ -318,6 +364,7 @@ class HomeWorkDesigner(activity.Activity):
 			self.vBoxMain.get_children()[self.currentExerciseIndex].show_all()
 
 		self.manageNevegationButtons()
+		self.manageComboBoxDisplay()
 		self.getLogger().debug("exit from buttonDeleteExercise")		
 
 	def zipdir(self,path, zip):
@@ -395,27 +442,30 @@ class HomeWorkDesigner(activity.Activity):
 		self._alert_notify(_("Export as activity"), _("It has been exported successfully"))
 		
 		#delete the .xo created when is saved in the datastore
-		#os.remove(self.get_activity_root() + '/instance/' + activityNameSpacesLess + '.activity.xo')			
+		os.remove(self.get_activity_root() + '/instance/' + activityNameSpacesLess + '.activity.xo')			
 
 		self.getLogger().debug(theJson)
 		self.getLogger().debug(itemsToCopy)
 
-	def createNewExerciseType(self, codeExerciseType, jsonResume):
+	def createNewExerciseType(self, codeExerciseType, jsonResume, newWindow):
 		self.getLogger().debug("inside to createNewExerciseType")
+			
 		newExerciseTemplate = None
 		newWindowExerciseTemplate = None
-		if codeExerciseType == 1:
-			self._logger.debug("Inside : if codeExerciseType == 1")
-			newExerciseTemplate = SimpleAssociationTemplate()
-			newWindowExerciseTemplate = newExerciseTemplate.getWindow(self, jsonResume)
-			self._logger.debug("After : ewWindowExerciseTemplate = newExerciseTemplate.getWindow(self)")
-		elif codeExerciseType == 2:
-			newExerciseTemplate = FindTheDifferentTemplate()
-			newWindowExerciseTemplate = newExerciseTemplate.getWindow(self, jsonResume)		
-		elif codeExerciseType == 3:
-			newExerciseTemplate = SearchTheSameTemplate()
-			newWindowExerciseTemplate = newExerciseTemplate.getWindow(self, jsonResume)
-		
+		if newWindow is None:
+			if codeExerciseType == 1:
+				self._logger.debug("Inside : if codeExerciseType == 1")
+				newExerciseTemplate = SimpleAssociationTemplate()
+				newWindowExerciseTemplate = newExerciseTemplate.getWindow(self, jsonResume, 1)
+				self._logger.debug("After : ewWindowExerciseTemplate = newExerciseTemplate.getWindow(self)")
+			elif codeExerciseType == 2:
+				newExerciseTemplate = FindTheDifferentTemplate()
+				newWindowExerciseTemplate = newExerciseTemplate.getWindow(self, jsonResume, 1)		
+			elif codeExerciseType == 3:
+				newExerciseTemplate = SearchTheSameTemplate()
+				newWindowExerciseTemplate = newExerciseTemplate.getWindow(self, jsonResume, 1)
+		else:
+			newWindowExerciseTemplate = newWindow
 	
 		vBoxMain = self.vBoxMain
 		allWindowsExercises = vBoxMain.get_children()
@@ -432,6 +482,7 @@ class HomeWorkDesigner(activity.Activity):
 		self.getLogger().debug("update after createNewExerciseType")		
 
 		self.manageNevegationButtons()
+		self.manageComboBoxDisplay()
 		newWindowExerciseTemplate.show_all()
 		self.getLogger().debug("exit from buttonDeleteExercise")
 		
@@ -513,6 +564,6 @@ class HomeWorkDesigner(activity.Activity):
 
 	def resumeActivity(self, jsonState):
 		for exerciseJson in jsonState['exercises']:
-			self.createNewExerciseType(exerciseJson['codeType'], exerciseJson)
+			self.createNewExerciseType(exerciseJson['codeType'], exerciseJson, None)
 		self.moveToExerciseIndex(jsonState['currentExerciseIndex'])				
 		

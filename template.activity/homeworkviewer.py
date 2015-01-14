@@ -166,9 +166,14 @@ class HomeWorkViewer(activity.Activity):
 		self.set_canvas(self.vBoxMain)
 		self.show_all()
 	
-		jsonState = None		
-		if os.path.exists('exerciseState.txt'):		
-			with open('exerciseState.txt', 'r') as stateFile:
+		self._logger.debug(self.metadata.keys())
+		self._logger.debug(self.metadata['activity_id'])	
+			
+		jsonState = None
+		activityName = self.metadata.get('title')		
+		if (self.metadata.get('custom_activity_id') is not None):		
+			with open(self.get_activity_root() + '/data/'  + \
+					  str(self.metadata['custom_activity_id']) + '/exerciseState.txt', 'r') as stateFile:
 				jsonState = json.load(stateFile)			
 			stateFile.close()
 		self.createWindowExercises(jsonState)
@@ -179,7 +184,8 @@ class HomeWorkViewer(activity.Activity):
 			self.exercisesMatches = self.exercisesMatches + 1	
 		
 		self.modalDoneWindow = ModalWindowDone(self)
-		self.modalDoneWindow.show()	
+		self.modalDoneWindow.show()
+		self.freezeExerciseWindow()	
 	
 	def manageBackNextButtons(self):
 		self.getLogger().debug("Inside to manageBackNextButtons")
@@ -274,17 +280,35 @@ class HomeWorkViewer(activity.Activity):
 		theJson["exercises"] = []
                 itemsToCopy = []
                 activityName = self.metadata.get('title')
-                for index, exerciseWindow in enumerate( allExerciseWindows ):
+                
+		metadataKeys = self.metadata.keys()
+		self.getLogger().debug(metadataKeys)
+		for key in metadataKeys:
+			self.getLogger().debug(key)
+			self.getLogger().debug(self.metadata.get(key))
+
+		for index, exerciseWindow in enumerate( allExerciseWindows ):
                                 exerciseJson = exerciseWindow.exerciseInstance.saveExerciseState()
                                 theJson['exercises'].append(exerciseJson)
 
-		
+
+		'''if not os.path.exists(self.get_activity_root() + '/data/' + activityName):
+                        os.makedirs(self.get_activity_root() + '/data/' + activityName)'''
+
+		if self.metadata.get('custom_activity_id') is None:
+			self.metadata['custom_activity_id'] = len(os.walk(self.get_activity_root() + '/data').next()[1]) + 1	
+			if not os.path.exists(self.get_activity_root() + '/data/' + str(self.metadata['custom_activity_id'])):
+                        	os.makedirs( self.get_activity_root() + '/data/' + str(self.metadata['custom_activity_id']))	
+	
                 self.getLogger().debug(theJson)
-                with open('exerciseState.txt', 'w+') as stateFile:
+                with open( self.get_activity_root() + '/data/' + str(self.metadata['custom_activity_id'])  + '/exerciseState.txt', 'w+') as stateFile:
 			json.dump(theJson,stateFile )
 		stateFile.close()
-	 
 
+	def freezeExerciseWindow(self):
+		currentWindowsExercise = self.vBoxMain.get_children()[self.currentIndexExercise] 
+		currentWindowsExercise.exerciseInstance.disconnectEventBoxs()	
+	
 	def moveToExerciseIndex(self, indexExercise):
                 self.getLogger().debug("Inside to moveToExerciseIndex")
 		vBoxMain = self.vBoxMain

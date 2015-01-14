@@ -1,5 +1,5 @@
 [Activity]
-name = HomeWorkDesigner
+name = HomeWork Designer
 activity_version = 3
 bundle_id = org.sugarlabs.HomeWorkDesigner
 exec = sugar-activity homeworkdesigner.HomeWorkDesigner

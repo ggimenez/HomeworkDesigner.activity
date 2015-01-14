@@ -23,10 +23,10 @@ LETTERS_SCALE = [100, 100]
 Reference of colours codes :http://www.rapidtables.com/web/color/RGB_Color.htm
 '''
 COLOURS_ASSOCIATION = []
-#Marron
-COLOURS_ASSOCIATION.append({"colour":"#800000", "available":True})
-#red
-COLOURS_ASSOCIATION.append({"colour":"#FF0000", "available":True})
+#royal blue
+COLOURS_ASSOCIATION.append({"colour":"#3CB371", "available":True})
+#orange
+COLOURS_ASSOCIATION.append({"colour":"#FFA500", "available":True})
 #teal
 COLOURS_ASSOCIATION.append({"colour":"#008080", "available":True})
 #thistle
@@ -34,14 +34,14 @@ COLOURS_ASSOCIATION.append({"colour":"#F5DEB3", "available":True})
 #dark sea green
 COLOURS_ASSOCIATION.append({"colour":"#3CB371", "available":True})
 
-
+EVENTBOX_SCALE = [100,100]
 
 
 '''Curren item selection association'''
 SELECTED_COLOUR = gtk.gdk.Color("#FFFF00")
 
-FONT_DESCRIPTION = 'DejaVu Bold 40'
-
+FONT_DESCRIPTION_BIG = 'DejaVu Bold 40'
+FONT_DESCRIPTION_MEDIUM = 'DejaVu Bold 20'
 
 class SimpleAssociation():
 
@@ -58,8 +58,13 @@ class SimpleAssociation():
 		stateJson['optionsList'] = self.optionsList
 		stateJson['correspondencesList'] = self.correspondencesList
 		stateJson['COLOURS_ASSOCIATION'] = self.COLOURS_ASSOCIATION	
+		stateJson['exerciseCompleted'] = self.exerciseCompleted
 
 		return stateJson 
+	
+	def disconnectEventBoxs(self):
+		for index, eventBox in enumerate(self.allEventBoxs):
+                 	eventBox.disconnect(self.idHandlers[index])
 	
 		
 	
@@ -76,13 +81,18 @@ class SimpleAssociation():
 		
 		vBoxWindows = gtk.VBox(False, 5)
 		hBoxExercises = gtk.HBox(True, 50)
-		self.vBoxOptions = gtk.VBox(True, 5)
-		self.vBoxCorrespondences = gtk.VBox(True, 5)
+		self.vBoxOptions = gtk.VBox(False, 5)
+		self.vBoxOptions.set_border_width(10)
+		self.vBoxCorrespondences = gtk.VBox(False, 5)
+		self.vBoxCorrespondences.set_border_width(10)
 		
 		frameExercises = gtk.Frame() 
 		
 		frameExercises.add(hBoxExercises)
-		
+	
+		self.idHandlers = []
+		self.allEventBoxs = []	
+		self.exerciseCompleted = False	
 		if stateJson is None:
 			self.optionsSelectionState = []
 			self.correspondencesSelectionState = []
@@ -109,18 +119,30 @@ class SimpleAssociation():
 			self.optionsList = stateJson['optionsList']
 			self.correspondencesList = stateJson['correspondencesList']
 			self.COLOURS_ASSOCIATION = stateJson['COLOURS_ASSOCIATION']			
-	
+			self.exerciseCompleted = stateJson['exerciseCompleted']	
 		self.mainWindows.getLogger().debug( self.COLOURS_ASSOCIATION )
 
 	
 		firstOptionEventBox = None
 		
+		frameVBoxOptions = gtk.Frame()
+		frameVBoxOptions.set_border_width(10)
+		#dark orange
+		frameVBoxOptions.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color("#FF8C00"))		
+		frameVBoxCorrespondences = gtk.Frame()
+		frameVBoxCorrespondences.set_border_width(10)
+		#dark slate blue
+                frameVBoxCorrespondences.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color('#483D8B'))
 
 		for index,  option in enumerate(self.optionsList):
 			'''Options'''
 			self.mainWindows.getLogger().debug(option)
 			eventBoxOption = self.createEventBox(option['option']['value'], option['option']['type'])
-			eventBoxOption.connect("button-press-event", self.imageSelectedCallBack, self.vBoxCorrespondences)
+			if not self.exerciseCompleted:
+				idHandler = eventBoxOption.connect("button-press-event", self.imageSelectedCallBack, self.vBoxCorrespondences)
+				self.allEventBoxs.append(eventBoxOption)
+				self.idHandlers.append(idHandler)			
+
 			self.addEventBoxToVBox(eventBoxOption, self.vBoxOptions)			
 			if index == 0:
 				firstOptionEventBox = eventBoxOption
@@ -131,15 +153,20 @@ class SimpleAssociation():
 			eventBoxCorrespondence = ( self.createEventBox(self.correspondencesList[index]['correspondence']['value'],
 							self.correspondencesList[index]['correspondence']['type']) )
 			
-			eventBoxCorrespondence.connect("button_press_event", self.pairSelectedCallBack, self.vBoxOptions)
+			if not self.exerciseCompleted:
+				idHandler = eventBoxCorrespondence.connect("button_press_event", self.pairSelectedCallBack, self.vBoxOptions)
+				self.allEventBoxs.append(eventBoxCorrespondence)
+				self.idHandlers.append(idHandler)			
+
 			self.addEventBoxToVBox(eventBoxCorrespondence, self.vBoxCorrespondences)
 			if stateJson is None:
 				( self.correspondencesSelectionState.append( {"selected": -1,
 				"pair":self.correspondencesList[index]['indexPair'], "colour": None} ) )	
 			
-			
-		hBoxExercises.pack_start(self.vBoxOptions, False,True,50)
-		hBoxExercises.pack_start(self.vBoxCorrespondences, False,True,50)
+	        frameVBoxOptions.add(self.vBoxOptions)		
+		frameVBoxCorrespondences.add(self.vBoxCorrespondences)
+		hBoxExercises.pack_start(frameVBoxOptions, False,True,50)
+		hBoxExercises.pack_start(frameVBoxCorrespondences, False,True,50)
 		vBoxWindows.pack_start(frameExercises, True,True,0)
 		
 		windowSimpleAssociation.add_with_viewport(vBoxWindows)
@@ -177,26 +204,22 @@ class SimpleAssociation():
 		
 	def createEventBox(self, payload, typePayload):
 		eventBox = gtk.EventBox()
+		eventBox.set_size_request(EVENTBOX_SCALE[0], EVENTBOX_SCALE[1])
 		if typePayload == "image":
 			imageContainer =  gtk.Image()
 			pixbuf = gtk.gdk.pixbuf_new_from_file(payload)
-			pixbuf = gtk.gdk.Pixbuf.add_alpha(pixbuf,255,255,255 ,255)
 			imageContainer.set_from_pixbuf(pixbuf)
 			eventBox.add(imageContainer)
 			eventBox.modify_bg(gtk.STATE_NORMAL, eventBox.get_colormap().alloc_color('white'))
 		if typePayload == "letter":
 			letterLabel = gtk.Label(payload)
-			letterLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION))
+			if len(payload) <= 8:
+				letterLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION_BIG))
+			else:	
+				letterLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION_MEDIUM))
 			eventBox.add(letterLabel)
 			eventBox.modify_bg(gtk.STATE_NORMAL, eventBox.get_colormap().alloc_color('white'))
-			eventBox.set_size_request(LETTERS_SCALE[0], LETTERS_SCALE[1])
-		if typePayload == "word":
-			letterLabel = gtk.Label(payload)
-			letterLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION))
-			eventBox.add(letterLabel)
-			eventBox.modify_bg(gtk.STATE_NORMAL, eventBox.get_colormap().alloc_color('white'))
-			eventBox.set_size_request(LETTERS_SCALE[0], LETTERS_SCALE[1])
-			
+						
 		return eventBox
 			
 		
@@ -232,6 +255,7 @@ class SimpleAssociation():
 				result = False
 				break
 		if result:
+			self.exerciseCompleted = True
 			self.mainWindows.exerciseCompletedCallBack()
 	
 	def setAllAvailableSelectionColour(self):
@@ -398,6 +422,4 @@ class SimpleAssociation():
 		
 	def setSelectionStateColour(self,selectionState, index, colour):
 		selectionState[index]['colour'] = colour
-	
-
-	
+		

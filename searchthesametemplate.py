@@ -19,18 +19,18 @@ from gettext import gettext as _
 Reference of colours codes :http://www.rapidtables.com/web/color/RGB_Color.htm
 '''
 COLOURS_ASSOCIATION = []
-#Marron
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#800000"), "available":True})
+#royal blue
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#4169E1"), "available":True})
 #medium sea green
 COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#3CB371"), "available":True})
 #teal
 COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#008080"), "available":True})
-#thistle
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#D8BFD8"), "available":True})
+#sienna
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#A0522D"), "available":True})
 #dark sea green
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#8FBC8F"), "available":True})
-#forest green
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#228B22"), "available":True})
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#BA55D3"), "available":True})
+#wheat
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#F5DEB3"), "available":True})
 #chocolate
 COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#D2691E"), "available":True})
 #Gray
@@ -39,18 +39,24 @@ COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#808080"), "available":True}
 IMAGES_SCALE = [100, 100]
 LETTERS_SCALE = [100, 100]
 
-FONT_DESCRIPTION = 'DejaVu Bold 40'
+EVENTBOX_SCALE = [100,100]
 
+FONT_DESCRIPTION_BIG = 'DejaVu Bold 40'
+FONT_DESCRIPTION_MEDIUM = 'DejaVu Bold 20'
+
+MAXIMUM_LETTER_LENGTH_BIG = 8
 
 class SearchTheSameTemplate():	
 			
 		
 	def blankEventBox(self):
 		eventBox = gtk.EventBox()
+		eventBox.set_size_request(EVENTBOX_SCALE[0], EVENTBOX_SCALE[1])
 		eventBox.modify_bg(gtk.STATE_NORMAL, eventBox.get_colormap().alloc_color("white"))
 		blankLabel = gtk.Label("")
-		blankLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION))
+		blankLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION_BIG))
 		eventBox.add(blankLabel)
+		eventBox.isBlank = True
 		return eventBox
 		
 	def setAllAvailableSelectionColour(self):
@@ -75,7 +81,7 @@ class SearchTheSameTemplate():
 		oldPayload = eventBox.get_children()[0]
 		eventBox.remove(oldPayload)
 		blankLabel = gtk.Label("")
-		blankLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION))
+		blankLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION_BIG))
 		eventBox.add(blankLabel)
 		eventBox.show_all()
 		
@@ -84,7 +90,11 @@ class SearchTheSameTemplate():
 		eventBox.remove(oldPayload)
 		if self.storeSelectionState[rowIndex][columnIndex]['type'] == "letter":
 			letterLabel = gtk.Label(self.storeSelectionState[rowIndex][columnIndex]['value'])
-			letterLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION))
+			if len(self.storeSelectionState[rowIndex][columnIndex]['value']) <= MAXIMUM_LETTER_LENGTH_BIG:
+				letterLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION_BIG))
+			else:
+				letterLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION_MEDIUM))
+	
 			eventBox.add(letterLabel)
 			eventBox.show_all()
 	
@@ -92,7 +102,12 @@ class SearchTheSameTemplate():
 		theMatrix = [[None] * columns for i in range(rows)]
 		
 		row = 0
-		itemIndex = [0,1,2,3,4,5,6,7]
+		itemIndex = None
+		if self.level is 1:
+			itemIndex = [0,1,2,3]
+		elif self.level is 2:		
+			itemIndex = [0,1,2,3,4,5,6,7]
+
 		currentItemIndex = 0
 		while row < rows :
 			column = 0
@@ -104,8 +119,8 @@ class SearchTheSameTemplate():
 				self.mainWindows.getLogger().debug(theMatrix)
 				if theMatrix[row][column] == None :				
 					while (isFoundMap is False):
-						rowMap = random.randint(0, 3)
-						columnMap = random.randint(0,3)					
+						rowMap = random.randint(0, (rows - 1))
+						columnMap = random.randint(0,(columns - 1))					
 						
 						if (rowMap != row or columnMap != column) and theMatrix[rowMap][columnMap] is None:
 							theMatrix[row][column] = [rowMap,columnMap, itemIndex[currentItemIndex]]			
@@ -124,14 +139,12 @@ class SearchTheSameTemplate():
                 copyMethod = None 
 
 		itemCopy = self.copyItem(item, itemType, args)
-                oldItem = self.currentEventBoxSelected.get_children()[0]
+        	oldItem = self.currentEventBoxSelected.get_children()[0]
                 self.currentEventBoxSelected.remove(oldItem)
                 self.currentEventBoxSelected.add(itemCopy)
                 self.currentEventBoxSelected.show_all()
-		colour = self.getAvailableSelectionColour()
-		self.setUnavailableColour(colour)
-		self.fakeSelection(self.currentEventBoxSelected, colour)	
-	
+		
+
 		itemIndex = self.mapTable[self.currentRowPairIndex][self.currentColumnPairIndex][2]
 		self.payloads[str(itemIndex)] = [itemCopy, self.currentRowPairIndex, self.currentColumnPairIndex]
 
@@ -146,9 +159,16 @@ class SearchTheSameTemplate():
                 oldItemPair = pairEventBox.get_children()[0]
                 pairEventBox.remove(oldItemPair)
                 pairEventBox.add(itemCopyPair)
-		self.fakeSelection(pairEventBox, colour)
-                pairEventBox.show_all()
-		
+		pairEventBox.show_all()		
+
+		if self.currentEventBoxSelected.isBlank is True:	        
+			colour = self.getAvailableSelectionColour()
+			self.setUnavailableColour(colour)
+			self.fakeSelection(self.currentEventBoxSelected, colour)	
+			self.currentEventBoxSelected.isBlank = False
+			self.fakeSelection(pairEventBox, colour)
+               		pairEventBox.isBlank = False
+			
 
 	def copyItem(self, item, itemType, args):
                 self.mainWindows.getLogger().debug("Inside to copyItem:")
@@ -156,8 +176,11 @@ class SearchTheSameTemplate():
                 itemCopy = None
                 if itemType == "text" or itemType == "letter":
                         itemCopy = gtk.Label(item.get_text())
-                        itemCopy.modify_font(pango.FontDescription(FONT_DESCRIPTION))
-                elif itemType == "image":
+	                if len(item.get_text()) <= MAXIMUM_LETTER_LENGTH_BIG:
+				itemCopy.modify_font(pango.FontDescription(FONT_DESCRIPTION_BIG))
+        		else:	
+				itemCopy.modify_font(pango.FontDescription(FONT_DESCRIPTION_MEDIUM))
+	        elif itemType == "image":
                         itemCopy = gtk.image_new_from_pixbuf(item.get_pixbuf())
 			itemCopy.imageName = args['imageName']
 			itemCopy.imageType = args['imageType']
@@ -171,9 +194,13 @@ class SearchTheSameTemplate():
                 dialogInsertNewItem.show()
 		self.currentEventBoxSelected = eventBox
 		self.currentRowPairIndex = self.mapTable[args[1]][args[2]][0]
-		self.currentColumnPairIndex = self.mapTable[args[1]][args[2]][1]
+		self.currentColumnPairIndex = self.mapTable[args[1]][args[2]][1]	
 	
-	def getWindow(self, mainWindows, jsonState):
+	def changeLevel(self, newLevel):
+                newWindow = self.getWindow(self.mainWindows, None, newLevel)
+                return newWindow
+
+	def getWindow(self, mainWindows, jsonState, level):
 		
 		self.mainWindows = mainWindows
 			
@@ -184,7 +211,7 @@ class SearchTheSameTemplate():
 		frameExercises = gtk.Frame() 
 		
 		
-		vBoxWindows = gtk.VBox(False, 10)
+		vBoxWindows = gtk.VBox(True, 10)
 		vBoxExercises = gtk.VBox(True, 10)
 		
 		
@@ -192,26 +219,31 @@ class SearchTheSameTemplate():
 		
 		
 		vBox = gtk.VBox(True, 0)
-		columns = 4
-		rows = 4
 		
 		rowsCount = 0
 		self.setAllAvailableSelectionColour()
-		
+		self.level = level	
+		self.mapTable = None
 		if jsonState is not None:
-			self.mapTable = jsonState['mapTable']
-		else:
-			self.mapTable = self.givemeMapTable(rows, columns)
+			self.level = jsonState['level']
 		
+		rows = -1
+		columns = -1
+		if self.level is 1:
+			columns = 2
+			rows = 4
+		elif self.level is 2:
+			columns =  4
+			rows = 4	
+	
 		self.payloads = {}
 		while rowsCount < (rows):
 			
-			hBox = gtk.HBox(True, 0)
+			hBox = gtk.HBox(False, 0)
 			countColumns = 0
 			while countColumns < (columns):
 								
-				eventBox = self.blankEventBox()
-				
+				eventBox = self.blankEventBox()	
 				eventBox.connect("button-press-event", self.cellSelectedCallBack, rowsCount, countColumns)
 				hBox.pack_start(eventBox, True,True,5)
 				countColumns = countColumns + 1
@@ -235,8 +267,8 @@ class SearchTheSameTemplate():
 		
 
 	
-		vBoxExercises.pack_start(vBox, True,True,0)
-		vBoxWindows.pack_start(frameExercises, True,True,0)
+		vBoxExercises.pack_start(vBox, True, False,0)
+		vBoxWindows.pack_start(frameExercises, True,False,0)
 		windowSearchTheSame.add_with_viewport(vBoxWindows)
 		
 		return windowSearchTheSame
@@ -249,7 +281,10 @@ class SearchTheSameTemplate():
                 args = {}
                 if jsonItem['type'] == 'letter':
                 	payloadResume = gtk.Label( jsonItem['value'] )
-                        payloadResume.modify_font(pango.FontDescription(FONT_DESCRIPTION))
+                        if len(jsonItem['value']) <= MAXIMUM_LETTER_LENGTH_BIG:
+				payloadResume.modify_font(pango.FontDescription(FONT_DESCRIPTION_BIG))
+			else:
+				payloadResume.modify_font(pango.FontDescription(FONT_DESCRIPTION_MEDIUM))
 
                 elif  jsonItem['type'] == 'image':
                 	payloadResume = gtk.Image()
@@ -267,10 +302,16 @@ class SearchTheSameTemplate():
 		
 		theExerciseJson = {}
                 theExerciseJson['codeType'] = 3
-		theExerciseJson['mapTable'] = self.mapTable	
+		theExerciseJson['mapTable'] = self.mapTable
+		theExerciseJson['level'] =  self.level	
                 theExerciseJson['items'] = []
                 itemsToCopy = []
-                if len(self.payloads) < 8 and not isStop:
+                elementsToFill = None
+		if self.level is 1:
+			elementsToFill = 4
+		elif self.level is 2:
+			elementsToFill = 8
+		if len(self.payloads) < elementsToFill and not isStop:
 			return (None, None, False, _("All items must be filled"))
 		for key, payload in self.payloads.iteritems():
                         theExerciseJson['items'].append(self.parseItemToJson(payload, itemsToCopy, isStop, pathToSaveItemsStop))

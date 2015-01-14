@@ -1,7 +1,7 @@
 [Activity]
-name = HomeWorkViewer
-activity_version = 3
-bundle_id = org.sugarlabs.HomeWorkViewer
+name = pepe cardozo
+activity_version = 1
+bundle_id = org.sugarlabs.pepecardozo
 exec = sugar-activity homeworkviewer.HomeWorkViewer
 icon = homework-viewer
 license = GPLv2+
