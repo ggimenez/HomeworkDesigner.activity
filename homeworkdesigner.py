@@ -31,6 +31,9 @@ from sugar.activity.widgets import TitleEntry
 from sugar.activity.widgets import StopButton
 from sugar.activity.widgets import ShareButton
 from sugar.graphics.toolbutton import ToolButton
+from sugar.graphics.toolcombobox import ToolComboBox
+from sugar.graphics.combobox import ComboBox
+
 
 from sugar.graphics.alert import Alert
 
@@ -515,3 +518,53 @@ class HomeWorkDesigner(activity.Activity):
         	self.add_alert(alert)
 	
  	def alert_notify_callback(self):
+		pass
+	
+	def read_file(self, tmp_file_path):
+		self.getLogger().debug("Inside to read_file")
+		self.getLogger().debug(tmp_file_path)
+		tmpFile = open(tmp_file_path, 'r')
+        	theJsonState = json.load(tmpFile)
+               	self.getLogger().debug(theJsonState) 
+		
+		self.resumeActivity(theJsonState)
+		tmpFile.close()
+
+
+	def write_file(self, tmp_file_path):
+		self.getLogger().debug("Inside to write_file")
+		self.getLogger().debug(tmp_file_path)	
+		tmpFile = open(tmp_file_path, 'w')
+		self.saveActivityState(tmpFile)
+		tmpFile.close()
+	
+	def saveActivityState(self, tmpFile):
+		self.getLogger().debug("inside to saveActivityState")
+		allExerciseWindows = self.vBoxMain.get_children()
+                theJson = {}
+                theJson["name"] = "JSON de prueba"
+                theJson['currentExerciseIndex'] = self.currentExerciseIndex
+		theJson["exercises"] = []
+                itemsToCopy = []
+		activityName = self.metadata.get('title')
+                for index, exerciseWindow in enumerate( allExerciseWindows ):
+                                exerciseJson, itemsToCopyAux = exerciseWindow.exerciseInstance.parseToJson(True, \
+								self.get_activity_root() + '/data/' + activityName)                
+                                
+				itemsToCopy = itemsToCopy + itemsToCopyAux
+                                theJson['exercises'].append(exerciseJson)
+
+		if not os.path.exists(self.get_activity_root() + '/data/' + activityName):
+    			os.makedirs(self.get_activity_root() + '/data/' + activityName)
+		
+		for itemToAdd in itemsToCopy:
+                	if itemToAdd['type'] == "image":
+                        	pixbuf = itemToAdd['value'].get_pixbuf()
+                                pixbuf.save(self.get_activity_root() + '/data/' + activityName + '/' + itemToAdd['fileName'], itemToAdd['fileType'])
+		self.getLogger().debug(theJson)
+		json.dump(theJson, tmpFile)
+
+	def resumeActivity(self, jsonState):
+		for exerciseJson in jsonState['exercises']:
+			self.createNewExerciseType(exerciseJson['codeType'], exerciseJson, None)
+		self.moveToExerciseIndex(jsonState['currentExerciseIndex'])
