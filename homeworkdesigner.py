@@ -1,4 +1,4 @@
-# Copyright 2009 Simon Schampijer
+# Copyright (c) 2014 Gabriel Alberto Gimenez. - gabrielgimenez85@gmail.com
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,7 +14,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-"""HelloWorld Activity: A case study for developing an activity."""
 
 import gtk
 import logging
@@ -32,8 +31,6 @@ from sugar.activity.widgets import TitleEntry
 from sugar.activity.widgets import StopButton
 from sugar.activity.widgets import ShareButton
 from sugar.graphics.toolbutton import ToolButton
-from sugar.graphics.toolcombobox import ToolComboBox
-from sugar.graphics.combobox import ComboBox
 
 from sugar.graphics.alert import Alert
 
@@ -93,9 +90,9 @@ class ModalWindowSelectExercise:
 		
 		self.hBoxExercises =  gtk.HBox(True, 1)
 		
-		exercisesTypes = ( [{"code":1, "imagePath":"./images/code1.png", "label":"Asociacion Simple"},
-                                    {"code":2, "imagePath":"./images/code2.png", "label":"Encuentra el Diferente"},
-                                    {"code":3, "imagePath":"./images/code3.png", "label":"Busca los iguales"} ]
+		exercisesTypes = ( [{"code":1, "imagePath":"./images/code1.png", "label": _("Simple Association")},
+                                    {"code":2, "imagePath":"./images/code2.png", "label": _("Find The Different")},
+                                    {"code":3, "imagePath":"./images/code3.png", "label": _("Search the Same")} ]
                                  )
 		
 		for exerciseType in exercisesTypes:
@@ -105,6 +102,8 @@ class ModalWindowSelectExercise:
 		
 			eventBox.connect("enter-notify-event", self.enterNotifyEventBoxCallBack)
 			eventBox.connect("leave_notify_event", self.leaveNotifyEventBoxCallBack)
+			eventBox.connect("button-press-event", self.exerciseTypeSelectedCallBack, exerciseType)
+			image = gtk.Image()
 			eventBox.connect("button-press-event", self.exerciseTypeSelectedCallBack, exerciseType)
 			image = gtk.Image()
 			image.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(exerciseType['imagePath']).scale_simple(300, 200, 2))
@@ -209,12 +208,12 @@ class HomeWorkDesigner(activity.Activity):
 
 		self.comboBoxLevels = ComboBox()
 		#self.comboBoxLevels.append_item(0, "--")
-		self.comboBoxLevels.append_item(1, 'One')
-		self.comboBoxLevels.append_item(2, 'Two')	
+		self.comboBoxLevels.append_item(1, _('One'))
+		self.comboBoxLevels.append_item(2, _('Two'))	
 		self.comboBoxLevels.connect('changed', self.comboBoxChanged)
 			
 		toolComboBoxLevels = ToolComboBox(self.comboBoxLevels)
-		toolComboBoxLevels.label.set_text("Level: ")	
+		toolComboBoxLevels.label.set_text(_("Level: "))	
 		toolbar_box.toolbar.insert(toolComboBoxLevels, 6)		
 	
 		separator2 = gtk.SeparatorToolItem()
@@ -305,7 +304,7 @@ class HomeWorkDesigner(activity.Activity):
                         else:
                                 self.buttonNext.set_sensitive(True)
 		if self.amountExercises > 0 :
-			self.labelExercisePosition.set_text( str(self.currentExerciseIndex + 1) + " of " + str(self.amountExercises) )
+			self.labelExercisePosition.set_text( str(self.currentExerciseIndex + 1) + _(" of ") + str(self.amountExercises) )
 		else:					
 			self.labelExercisePosition.set_text("")
 	def newExerciseCallBack(self, button, *args):
@@ -516,54 +515,3 @@ class HomeWorkDesigner(activity.Activity):
         	self.add_alert(alert)
 	
  	def alert_notify_callback(self):
-		pass
-			
-	def read_file(self, tmp_file_path):
-		self.getLogger().debug("Inside to read_file")
-		self.getLogger().debug(tmp_file_path)
-		tmpFile = open(tmp_file_path, 'r')
-        	theJsonState = json.load(tmpFile)
-               	self.getLogger().debug(theJsonState) 
-		
-		self.resumeActivity(theJsonState)
-		tmpFile.close()
-
-
-	def write_file(self, tmp_file_path):
-		self.getLogger().debug("Inside to write_file")
-		self.getLogger().debug(tmp_file_path)	
-		tmpFile = open(tmp_file_path, 'w')
-		self.saveActivityState(tmpFile)
-		tmpFile.close()
-	
-	def saveActivityState(self, tmpFile):
-		self.getLogger().debug("inside to saveActivityState")
-		allExerciseWindows = self.vBoxMain.get_children()
-                theJson = {}
-                theJson["name"] = "JSON de prueba"
-                theJson['currentExerciseIndex'] = self.currentExerciseIndex
-		theJson["exercises"] = []
-                itemsToCopy = []
-		activityName = self.metadata.get('title')
-                for index, exerciseWindow in enumerate( allExerciseWindows ):
-                                exerciseJson, itemsToCopyAux = exerciseWindow.exerciseInstance.parseToJson(True, \
-								self.get_activity_root() + '/data/' + activityName)                
-                                
-				itemsToCopy = itemsToCopy + itemsToCopyAux
-                                theJson['exercises'].append(exerciseJson)
-
-		if not os.path.exists(self.get_activity_root() + '/data/' + activityName):
-    			os.makedirs(self.get_activity_root() + '/data/' + activityName)
-		
-		for itemToAdd in itemsToCopy:
-                	if itemToAdd['type'] == "image":
-                        	pixbuf = itemToAdd['value'].get_pixbuf()
-                                pixbuf.save(self.get_activity_root() + '/data/' + activityName + '/' + itemToAdd['fileName'], itemToAdd['fileType'])
-		self.getLogger().debug(theJson)
-		json.dump(theJson, tmpFile)
-
-	def resumeActivity(self, jsonState):
-		for exerciseJson in jsonState['exercises']:
-			self.createNewExerciseType(exerciseJson['codeType'], exerciseJson, None)
-		self.moveToExerciseIndex(jsonState['currentExerciseIndex'])				
-		
