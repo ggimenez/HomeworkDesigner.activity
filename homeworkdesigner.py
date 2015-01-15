@@ -26,6 +26,7 @@ from sugar.graphics.toolbutton import ToolButton
 
 
 from sugar.activity.widgets import ActivityButton
+from sugar.activity.widgets import ActivityToolbarButton
 from sugar.activity.widgets import ActivityToolbox
 from sugar.activity.widgets import TitleEntry
 from sugar.activity.widgets import StopButton
@@ -158,7 +159,7 @@ class ModalWindowSelectExercise:
 		
 
 class HomeWorkDesigner(activity.Activity):
-	"""HelloWorldActivity class as specified in activity.info"""
+	
 	def __init__(self, handle):
 		
 		self._logger = logging.getLogger('home-work-designer-activity')
@@ -173,41 +174,32 @@ class HomeWorkDesigner(activity.Activity):
 		self.max_participants = 1
 
 		# toolbar with the new toolbar redesign
-		toolbar_box = ToolbarBox()
+		toolbar_box = ToolbarBox()		
 
-		activity_button = ActivityButton(self)
-		toolbar_box.toolbar.insert(activity_button, 0)
-		activity_button.show()
+		activityToolBarButton = ActivityToolbarButton(self)
+		toolbar_box.toolbar.insert(activityToolBarButton, -1)
+		activityToolBarButton.get_page().share.hide()
+		activityToolBarButton.get_page().keep.hide()
+		activityToolBarButton.show()
 
-		self.title_entry = TitleEntry(self)
-		toolbar_box.toolbar.insert(self.title_entry, 1)
-		self.title_entry.show()
-
-		separator = gtk.SeparatorToolItem()
-		separator.props.draw = False
-		separator.set_expand(True)
-		toolbar_box.toolbar.insert(separator, -1)
-		separator.show()
+		toolbar_box.toolbar.insert(self.createToolBarSeparator(True), -1)		
 
 		self.buttonBefore = ToolButton('go-previous')
 		self.buttonBefore.set_tooltip(_('Back'))
 		self.buttonBefore.connect("clicked", self.backButtonCallBack)
-		toolbar_box.toolbar.insert(self.buttonBefore, 2)
+		toolbar_box.toolbar.insert(self.buttonBefore, -1)
 
 		self.buttonNext = ToolButton('go-next')
 		self.buttonNext.set_tooltip(_('Next'))
 		self.buttonNext.connect("clicked", self.nextButtonCallBack)
-		toolbar_box.toolbar.insert(self.buttonNext, 3)
+		toolbar_box.toolbar.insert(self.buttonNext, -1)
 	
 		labelItem = gtk.ToolItem() 
 		self.labelExercisePosition = gtk.Label("")
 		labelItem.add(self.labelExercisePosition)
-		toolbar_box.toolbar.insert(labelItem, 4)
+		toolbar_box.toolbar.insert(labelItem, -1)
 		
-		separatorBeforeLevels = gtk.SeparatorToolItem()
-		separatorBeforeLevels.props.draw = False
-		separatorBeforeLevels.set_expand(True)
-		toolbar_box.toolbar.insert(separatorBeforeLevels, 5)	
+		toolbar_box.toolbar.insert(self.createToolBarSeparator(True), -1)	
 
 		self.comboBoxLevels = ComboBox()
 		#self.comboBoxLevels.append_item(0, "--")
@@ -217,28 +209,26 @@ class HomeWorkDesigner(activity.Activity):
 			
 		toolComboBoxLevels = ToolComboBox(self.comboBoxLevels)
 		toolComboBoxLevels.label.set_text(_("Level: "))	
-		toolbar_box.toolbar.insert(toolComboBoxLevels, 6)		
-	
-		separator2 = gtk.SeparatorToolItem()
-                separator2.props.draw = False
-                separator2.set_expand(True)
-                toolbar_box.toolbar.insert(separator2, 7)
-                separator2.show()
-	
+		toolbar_box.toolbar.insert(toolComboBoxLevels, -1)		
+		
 		self.newButton = ToolButton('add')
 		self.newButton.set_tooltip(_('New Exercise'))
 		self.newButton.connect("clicked", self.newExerciseCallBack)
-		toolbar_box.toolbar.insert(self.newButton, 8)
+		toolbar_box.toolbar.insert(self.newButton, -1)
 	
 		self.deleteButton = ToolButton('edit-delete')
 		self.deleteButton.set_tooltip(_('Delete Exercise'))
 		self.deleteButton.connect("clicked", self.buttonDeleteExerciseCallBack)
-		toolbar_box.toolbar.insert(self.deleteButton, 9)
-		
+		toolbar_box.toolbar.insert(self.deleteButton, -1)
+	
+		toolbar_box.toolbar.insert(self.createToolBarSeparator(True), -1)
+	
 		self.exportButton = ToolButton('document-save')
 		self.exportButton.set_tooltip(_('Export Exercise'))
 		self.exportButton.connect("clicked", self.exportExerciseCallBack)
-		toolbar_box.toolbar.insert(self.exportButton, 10)
+		toolbar_box.toolbar.insert(self.exportButton, -1)
+		
+		toolbar_box.toolbar.insert(self.createToolBarSeparator(True), -1)
 	
 		stop_button = StopButton(self)
 		toolbar_box.toolbar.insert(stop_button, -1)
@@ -257,7 +247,12 @@ class HomeWorkDesigner(activity.Activity):
 		
 		self.show_all()
 	
-	
+	def createToolBarSeparator(self, expand):
+		separator = gtk.SeparatorToolItem()
+                #separator.props.draw = True
+                separator.set_expand(expand)
+		return separator;
+		
 	def comboBoxChanged(self, combo, *args):
 		self.getLogger().debug("Inside to comboBoxChanged method:")
 		self.getLogger().debug(args)
