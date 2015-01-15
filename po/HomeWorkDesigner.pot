@@ -8,87 +8,84 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-01-14 16:01-0300\n"
+"POT-Creation-Date: 2015-01-15 14:53-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: es\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Pootle 2.0.5\n"
-"X-Poedit-Language: Spanish\n"
 
-#: homeworkdesigner.py:93
+#: homeworkdesigner.py:97
 msgid "Simple Association"
 msgstr ""
 
-#: homeworkdesigner.py:94
+#: homeworkdesigner.py:98
 msgid "Find The Different"
 msgstr ""
 
-#: homeworkdesigner.py:95
+#: homeworkdesigner.py:99
 msgid "Search the Same"
 msgstr ""
 
-#: homeworkdesigner.py:123 modalwindowselectItem.py:87
+#: homeworkdesigner.py:127 modalwindowselectItem.py:87
 msgid "Cancel"
 msgstr ""
 
-#: homeworkdesigner.py:190
+#: homeworkdesigner.py:188
 msgid "Back"
 msgstr ""
 
-#: homeworkdesigner.py:195
+#: homeworkdesigner.py:193
 msgid "Next"
 msgstr ""
 
-#: homeworkdesigner.py:211
+#: homeworkdesigner.py:206
 msgid "One"
 msgstr ""
 
-#: homeworkdesigner.py:212
+#: homeworkdesigner.py:207
 msgid "Two"
 msgstr ""
 
-#: homeworkdesigner.py:216
+#: homeworkdesigner.py:211
 msgid "Level: "
 msgstr ""
 
-#: homeworkdesigner.py:226
+#: homeworkdesigner.py:215
 msgid "New Exercise"
 msgstr ""
 
-#: homeworkdesigner.py:231
+#: homeworkdesigner.py:220
 msgid "Delete Exercise"
 msgstr ""
 
-#: homeworkdesigner.py:236
+#: homeworkdesigner.py:227
 msgid "Export Exercise"
 msgstr ""
 
-#: homeworkdesigner.py:307
+#: homeworkdesigner.py:305
 msgid " of "
 msgstr ""
 
-#: homeworkdesigner.py:346
+#: homeworkdesigner.py:344
 msgid "Remove exercise"
 msgstr ""
 
-#: homeworkdesigner.py:346
+#: homeworkdesigner.py:344
 msgid "Are you sure ?"
 msgstr ""
 
-#: homeworkdesigner.py:384 homeworkdesigner.py:441
+#: homeworkdesigner.py:382 homeworkdesigner.py:439
 msgid "Export as activity"
 msgstr ""
 
-#: homeworkdesigner.py:384
+#: homeworkdesigner.py:382
 msgid "Error in the exercise Number "
 msgstr ""
 
-#: homeworkdesigner.py:441
+#: homeworkdesigner.py:439
 msgid "It has been exported successfully"
 msgstr ""
 
