@@ -181,7 +181,7 @@ class SearchTheSameTemplate():
         		else:	
 				itemCopy.modify_font(pango.FontDescription(FONT_DESCRIPTION_MEDIUM))
 	        elif itemType == "image":
-                        itemCopy = gtk.image_new_from_pixbuf(item.get_pixbuf())
+                        itemCopy = gtk.image_new_from_pixbuf(item.get_pixbuf().scale_simple(IMAGES_SCALE[0], IMAGES_SCALE[1], 2)) 			
 			itemCopy.imageName = args['imageName']
 			itemCopy.imageType = args['imageType']
                 return itemCopy
@@ -289,7 +289,7 @@ class SearchTheSameTemplate():
                 elif  jsonItem['type'] == 'image':
                 	payloadResume = gtk.Image()
                		payloadResume.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(\
-                        	jsonItem['value'] ).scale_simple(IMAGES_SCALE[0], IMAGES_SCALE[1], 2))
+                        	jsonItem['value']).scale_simple(IMAGES_SCALE[0], IMAGES_SCALE[1], 2) )
                         payloadResume.imageName = jsonItem['fileName']
                         payloadResume.imageType = jsonItem['fileType']
 			args = {"imageName": jsonItem['fileName'],"imageType": jsonItem['fileType']}

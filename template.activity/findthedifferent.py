@@ -78,7 +78,7 @@ class FindTheDifferent():
 			eventBox.add(label)
 		elif itemElement.type == "image":
                         image = gtk.Image()
-			pixbuf = gtk.gdk.pixbuf_new_from_file(itemElement.value) 
+			pixbuf = gtk.gdk.pixbuf_new_from_file(itemElement.value).scale_simple(IMAGES_SCALE[0], IMAGES_SCALE[1], 2) 
 			image.set_from_pixbuf(pixbuf)
                         eventBox.add(image)
                         eventBox.show_all()

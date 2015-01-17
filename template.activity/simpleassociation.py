@@ -207,7 +207,7 @@ class SimpleAssociation():
 		eventBox.set_size_request(EVENTBOX_SCALE[0], EVENTBOX_SCALE[1])
 		if typePayload == "image":
 			imageContainer =  gtk.Image()
-			pixbuf = gtk.gdk.pixbuf_new_from_file(payload)
+			pixbuf = gtk.gdk.pixbuf_new_from_file(payload).scale_simple(IMAGES_SCALE[0], IMAGES_SCALE[1], 2)
 			imageContainer.set_from_pixbuf(pixbuf)
 			eventBox.add(imageContainer)
 			eventBox.modify_bg(gtk.STATE_NORMAL, eventBox.get_colormap().alloc_color('white'))

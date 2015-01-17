@@ -176,11 +176,11 @@ class HomeWorkDesigner(activity.Activity):
 		# toolbar with the new toolbar redesign
 		toolbar_box = ToolbarBox()		
 
-		activityToolBarButton = ActivityToolbarButton(self)
-		toolbar_box.toolbar.insert(activityToolBarButton, -1)
-		activityToolBarButton.get_page().share.hide()
-		activityToolBarButton.get_page().keep.hide()
-		activityToolBarButton.show()
+		self.activityToolBarButton = ActivityToolbarButton(self)
+		toolbar_box.toolbar.insert(self.activityToolBarButton, -1)
+		self.activityToolBarButton.get_page().share.hide()
+		self.activityToolBarButton.get_page().keep.hide()
+		self.activityToolBarButton.show()
 
 		toolbar_box.toolbar.insert(self.createToolBarSeparator(True), -1)		
 
@@ -264,8 +264,9 @@ class HomeWorkDesigner(activity.Activity):
 			self.getLogger().debug( currentWindow.exerciseInstance.level )
 			if currentWindow.exerciseInstance.level is not newLevel:
 				newWindow = currentWindow.exerciseInstance.changeLevel(newLevel)
-				self.deleteExerciseCallBack()
-				self.createNewExerciseType(None, None, newWindow)
+				self.changeLevelExercise(newWindow)
+				#self.deleteExerciseCallBack()
+				#self.createNewExerciseType(None, None, newWindow)
 				
 
 	def manageComboBoxDisplay(self):
@@ -305,6 +306,8 @@ class HomeWorkDesigner(activity.Activity):
 			self.labelExercisePosition.set_text( str(self.currentExerciseIndex + 1) + _(" of ") + str(self.amountExercises) )
 		else:					
 			self.labelExercisePosition.set_text("")
+		self.manageComboBoxDisplay()
+		
 	def newExerciseCallBack(self, button, *args):
 		self.getLogger().debug("inside to newExerciseCallBack")
 		dialogExercise = ModalWindowSelectExercise(self)
@@ -316,8 +319,7 @@ class HomeWorkDesigner(activity.Activity):
                 self.currentExerciseIndex = self.currentExerciseIndex + 1
                 self.vBoxMain.get_children()[self.currentExerciseIndex].show()
                 self.manageNevegationButtons()
-		self.manageComboBoxDisplay()
-
+	
 		
 	def getLogger(self):
 		return self._logger
@@ -338,11 +340,18 @@ class HomeWorkDesigner(activity.Activity):
 				windowExercise.show_all()
 		self.currentExerciseIndex = indexExercise
 		self.manageNevegationButtons()
-		self.manageComboBoxDisplay()	
 	
 	def buttonDeleteExerciseCallBack(self, button, *args):
 		self._alert_confirmation(self.deleteExerciseCallBack, _("Remove exercise"), _("Are you sure ?"))		
-	
+
+	def changeLevelExercise(self, newWindow):
+		windowToChange = self.vBoxMain.get_children()[self.currentExerciseIndex]
+                self.vBoxMain.remove(windowToChange)
+		self.vBoxMain.pack_start(newWindow, True, True, 0)
+		self.vBoxMain.reorder_child(newWindow, self.currentExerciseIndex)						
+		newWindow.show_all()
+		self.manageNevegationButtons()
+
 	def deleteExerciseCallBack(self):
 		self.getLogger().debug("inside to buttonDeleteExercise")
 		self.getLogger().debug(self.amountExercises)
@@ -361,7 +370,6 @@ class HomeWorkDesigner(activity.Activity):
 			self.vBoxMain.get_children()[self.currentExerciseIndex].show_all()
 
 		self.manageNevegationButtons()
-		self.manageComboBoxDisplay()
 		self.getLogger().debug("exit from buttonDeleteExercise")		
 
 	def zipdir(self,path, zip):
@@ -397,7 +405,7 @@ class HomeWorkDesigner(activity.Activity):
 				if itemToAdd['type'] == "image":
 						pixbuf = itemToAdd['value'].get_pixbuf()
 						pixbuf.save('./template.activity/images/' + itemToAdd['fileName'], itemToAdd['fileType'])
-		activityName = self.title_entry.entry.get_text()
+		activityName = self.activityToolBarButton.get_page().title.get_text()
 
 		#write activity info
 		activityInfoData = []
@@ -422,13 +430,43 @@ class HomeWorkDesigner(activity.Activity):
 				for infoEntry in activityInfoData:
 						infofile.write(infoEntry + "\n")
 				infofile.close()
-	
+
+		#changes for internationalization
+		os.rename("./template.activity/locale/en/LC_MESSAGES/org.sugarlabs.Change.mo", ( 
+			"./template.activity/locale/en/LC_MESSAGES/org.sugarlabs." + activityNameSpacesLess + ".mo") )
+		
+		activityInfoDataTranslate = []
+		activityInfoDataTranslate.append("[Activity]")
+		activityInfoDataTranslate.append("name = " + activityName)
+		
+		with open('./template.activity/locale/en/activity.info', 'w') as infofileTraduction:
+                                infofileTraduction.truncate()
+                                for infoEntry in activityInfoDataTranslate:
+                                                infofileTraduction.write(infoEntry + "\n")
+                                infofileTraduction.close()
+
+		os.rename("./template.activity/locale/es/LC_MESSAGES/org.sugarlabs.Change.mo", ( 
+			"./template.activity/locale/es/LC_MESSAGES/org.sugarlabs." + activityNameSpacesLess + ".mo"))
+
+		with open('./template.activity/locale/es/activity.info', 'w') as infofileTraduction:
+                                infofileTraduction.truncate()
+                                for infoEntry in activityInfoDataTranslate:
+                                                infofileTraduction.write(infoEntry + "\n")
+                                infofileTraduction.close()		
+
+
 		zipf = zipfile.ZipFile(self.get_activity_root() + '/instance/' + activityNameSpacesLess + '.activity.xo', 'w')                                             
 		os.rename("./template.activity/", activityNameSpacesLess + '.activity')
 		self.zipdir(activityNameSpacesLess + '.activity', zipf)
 		zipf.close()
 		os.rename( activityNameSpacesLess + '.activity',"./template.activity/")
 
+		os.rename("./template.activity/locale/en/LC_MESSAGES/org.sugarlabs." + activityNameSpacesLess + ".mo", (
+				"./template.activity/locale/en/LC_MESSAGES/org.sugarlabs.Change.mo"))
+		os.rename("./template.activity/locale/es/LC_MESSAGES/org.sugarlabs." + activityNameSpacesLess + ".mo", (
+				"./template.activity/locale/es/LC_MESSAGES/org.sugarlabs.Change.mo"))
+
+		
 		file_dsobject = datastore.create()
 		file_dsobject.metadata['title'] = activityNameSpacesLess + '.activity.xo'
 		file_dsobject.metadata['mime_type'] = "application/vnd.olpc-sugar"
@@ -439,7 +477,7 @@ class HomeWorkDesigner(activity.Activity):
 		self._alert_notify(_("Export as activity"), _("It has been exported successfully"))
 		
 		#delete the .xo created when is saved in the datastore
-		os.remove(self.get_activity_root() + '/instance/' + activityNameSpacesLess + '.activity.xo')			
+		#os.remove(self.get_activity_root() + '/instance/' + activityNameSpacesLess + '.activity.xo')			
 
 		self.getLogger().debug(theJson)
 		self.getLogger().debug(itemsToCopy)
@@ -475,13 +513,11 @@ class HomeWorkDesigner(activity.Activity):
 		self.currentExerciseIndex = self.currentExerciseIndex + 1
 		
 		self.getLogger().debug(self.amountExercises)
-                self.getLogger().debug(self.currentExerciseIndex)
-		self.getLogger().debug("update after createNewExerciseType")		
+                self.getLogger().debug(self.currentExerciseIndex)		
 
 		self.manageNevegationButtons()
-		self.manageComboBoxDisplay()
 		newWindowExerciseTemplate.show_all()
-		self.getLogger().debug("exit from buttonDeleteExercise")
+		
 		
 		
 	def _alert_confirmation(self, callback, title, message):

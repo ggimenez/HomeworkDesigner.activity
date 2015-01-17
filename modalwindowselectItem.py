@@ -168,7 +168,7 @@ class ModalWindowSelectItem:
 			imageSelected.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(self.path).scale_simple(300, 300, 2))
 			
 			imageSelectedCopy = gtk.Image()
-			imageSelectedCopy.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(self.path).scale_simple(IMAGES_SCALE[0], IMAGES_SCALE[1], 2))
+			imageSelectedCopy.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(self.path).scale_simple(IMAGES_SCALE[0], IMAGES_SCALE[1], 2)) 
 			imageSelectedCopy.imageName = self.jobject.get_metadata().get('title')				
 			imageMimeType = self.jobject.get_metadata().get('mime_type').split("/")
 			imageSelectedCopy.imageType = imageMimeType[1]	

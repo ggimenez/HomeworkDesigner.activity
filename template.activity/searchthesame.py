@@ -103,7 +103,7 @@ class SearchTheSame():
 			eventBox.show_all()
 		elif payload.type == "image":
 			image = gtk.Image()
-			pixbuf = gtk.gdk.pixbuf_new_from_file(payload.value)
+			pixbuf = gtk.gdk.pixbuf_new_from_file(payload.value).scale_simple(IMAGES_SCALE[0], IMAGES_SCALE[1], 2)
                         image.set_from_pixbuf(pixbuf)
 			eventBox.add(image)
 			eventBox.show_all()
