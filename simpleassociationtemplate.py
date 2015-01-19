@@ -28,8 +28,8 @@ EVENTBOX_SCALE = [100,100]
 SELECTED_COLOUR = gtk.gdk.Color("#FFFF00")
 
 #FONT_DESCRIPTION = 'DejaVu Bold 40'
-FONT_DESCRIPTION_BIG = 'DejaVu Bold 40'
-FONT_DESCRIPTION_MEDIUM = 'DejaVu Bold 20'
+FONT_DESCRIPTION_BIG = 'DejaVu Bold 30'
+FONT_DESCRIPTION_MEDIUM = 'DejaVu Bold 15'
 
 MAXIMUM_LETTER_LENGTH_BIG = 8
 
@@ -70,7 +70,7 @@ class SimpleAssociationTemplate():
 		
 	
 		vBoxWindows = gtk.VBox(False, 5)
-		hBoxExercises = gtk.HBox(True, 50)
+		hBoxExercises = gtk.HBox(False, 5)
 		
 		self.vBoxOptions = gtk.VBox(False, 5)
 		self.vBoxOptions.set_border_width(10)
@@ -99,9 +99,9 @@ class SimpleAssociationTemplate():
 			self.level = jsonState['level']
 		
 		if self.level is 1:
-			rows = 2
+			rows = 3
 		elif self.level is 2:
-			rows = 5
+			rows = 7
 		
 		while itemCount <= rows:
 			payloadOptionResume = None
@@ -124,8 +124,8 @@ class SimpleAssociationTemplate():
 			itemCount = itemCount + 1
 		frameVBoxOptions.add(self.vBoxOptions)
                 frameVBoxCorrespondences.add(self.vBoxCorrespondences)	
-		hBoxExercises.pack_start(frameVBoxOptions, False,True,50)
-		hBoxExercises.pack_start(frameVBoxCorrespondences, False,True,50)
+		hBoxExercises.pack_start(frameVBoxOptions, True,True,5)
+		hBoxExercises.pack_start(frameVBoxCorrespondences, True,True,5)
 		vBoxWindows.pack_start(frameExercises, True,True,0)
 		
 		windowSimpleAssociation.add_with_viewport(vBoxWindows)

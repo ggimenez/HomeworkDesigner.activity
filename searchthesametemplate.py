@@ -36,13 +36,21 @@ COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#D2691E"), "available":True}
 #Gray
 COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#808080"), "available":True})
 
-IMAGES_SCALE = [100, 100]
+IMAGES_SCALE_LEVEL_1 = [150, 150]
+IMAGES_SCALE_LEVEL_2 = [150, 150]
+
+
 LETTERS_SCALE = [100, 100]
 
-EVENTBOX_SCALE = [100,100]
+EVENTBOX_SCALE_LEVEL_1 = [150,150]
+EVENTBOX_SCALE_LEVEL_2 = [150,150]
 
-FONT_DESCRIPTION_BIG = 'DejaVu Bold 40'
-FONT_DESCRIPTION_MEDIUM = 'DejaVu Bold 20'
+FONT_DESCRIPTION_BIG_LEVEL_1 = 'DejaVu Bold 30'
+FONT_DESCRIPTION_MEDIUM_LEVEL_1 = 'DejaVu Bold 15'
+
+FONT_DESCRIPTION_BIG_LEVEL_2 = 'DejaVu Bold 17'
+FONT_DESCRIPTION_MEDIUM_LEVEL_2 = 'DejaVu Bold 9'
+
 
 MAXIMUM_LETTER_LENGTH_BIG = 8
 
@@ -51,10 +59,10 @@ class SearchTheSameTemplate():
 		
 	def blankEventBox(self):
 		eventBox = gtk.EventBox()
-		eventBox.set_size_request(EVENTBOX_SCALE[0], EVENTBOX_SCALE[1])
+		eventBox.set_size_request(self.EVENTBOX_SCALE[0], self.EVENTBOX_SCALE[1])
 		eventBox.modify_bg(gtk.STATE_NORMAL, eventBox.get_colormap().alloc_color("white"))
 		blankLabel = gtk.Label("")
-		blankLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION_BIG))
+		blankLabel.modify_font(pango.FontDescription(self.FONT_DESCRIPTION_BIG))
 		eventBox.add(blankLabel)
 		eventBox.isBlank = True
 		return eventBox
@@ -81,7 +89,7 @@ class SearchTheSameTemplate():
 		oldPayload = eventBox.get_children()[0]
 		eventBox.remove(oldPayload)
 		blankLabel = gtk.Label("")
-		blankLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION_BIG))
+		blankLabel.modify_font(pango.FontDescription(self.FONT_DESCRIPTION_BIG))
 		eventBox.add(blankLabel)
 		eventBox.show_all()
 		
@@ -91,9 +99,9 @@ class SearchTheSameTemplate():
 		if self.storeSelectionState[rowIndex][columnIndex]['type'] == "letter":
 			letterLabel = gtk.Label(self.storeSelectionState[rowIndex][columnIndex]['value'])
 			if len(self.storeSelectionState[rowIndex][columnIndex]['value']) <= MAXIMUM_LETTER_LENGTH_BIG:
-				letterLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION_BIG))
+				letterLabel.modify_font(pango.FontDescription(self.FONT_DESCRIPTION_BIG))
 			else:
-				letterLabel.modify_font(pango.FontDescription(FONT_DESCRIPTION_MEDIUM))
+				letterLabel.modify_font(pango.FontDescription(self.FONT_DESCRIPTION_MEDIUM))
 	
 			eventBox.add(letterLabel)
 			eventBox.show_all()
@@ -177,11 +185,11 @@ class SearchTheSameTemplate():
                 if itemType == "text" or itemType == "letter":
                         itemCopy = gtk.Label(item.get_text())
 	                if len(item.get_text()) <= MAXIMUM_LETTER_LENGTH_BIG:
-				itemCopy.modify_font(pango.FontDescription(FONT_DESCRIPTION_BIG))
+				itemCopy.modify_font(pango.FontDescription(self.FONT_DESCRIPTION_BIG))
         		else:	
-				itemCopy.modify_font(pango.FontDescription(FONT_DESCRIPTION_MEDIUM))
+				itemCopy.modify_font(pango.FontDescription(self.FONT_DESCRIPTION_MEDIUM))
 	        elif itemType == "image":
-                        itemCopy = gtk.image_new_from_pixbuf(item.get_pixbuf().scale_simple(IMAGES_SCALE[0], IMAGES_SCALE[1], 2)) 			
+                        itemCopy = gtk.image_new_from_pixbuf(item.get_pixbuf().scale_simple(self.IMAGES_SCALE[0], self.IMAGES_SCALE[1], 2)) 			
 			itemCopy.imageName = args['imageName']
 			itemCopy.imageType = args['imageType']
                 return itemCopy
@@ -232,9 +240,18 @@ class SearchTheSameTemplate():
 		if self.level is 1:
 			columns = 2
 			rows = 4
+			self.EVENTBOX_SCALE = EVENTBOX_SCALE_LEVEL_1
+			self.IMAGES_SCALE = IMAGES_SCALE_LEVEL_1
+			self.FONT_DESCRIPTION_BIG = FONT_DESCRIPTION_BIG_LEVEL_1
+			self.FONT_DESCRIPTION_MEDIUM = FONT_DESCRIPTION_MEDIUM_LEVEL_1
 		elif self.level is 2:
 			columns =  4
 			rows = 4	
+			self.EVENTBOX_SCALE = EVENTBOX_SCALE_LEVEL_2
+			self.IMAGES_SCALE = IMAGES_SCALE_LEVEL_2
+			self.FONT_DESCRIPTION_BIG = FONT_DESCRIPTION_BIG_LEVEL_2
+			self.FONT_DESCRIPTION_MEDIUM = FONT_DESCRIPTION_MEDIUM_LEVEL_2
+			
 	
 		self.payloads = {}
 		while rowsCount < (rows):
@@ -267,8 +284,8 @@ class SearchTheSameTemplate():
 		
 
 	
-		vBoxExercises.pack_start(vBox, True, False,0)
-		vBoxWindows.pack_start(frameExercises, True,False,0)
+		vBoxExercises.pack_start(vBox, True, True,0)
+		vBoxWindows.pack_start(frameExercises, True,True,0)
 		windowSearchTheSame.add_with_viewport(vBoxWindows)
 		
 		return windowSearchTheSame
@@ -282,14 +299,14 @@ class SearchTheSameTemplate():
                 if jsonItem['type'] == 'letter':
                 	payloadResume = gtk.Label( jsonItem['value'] )
                         if len(jsonItem['value']) <= MAXIMUM_LETTER_LENGTH_BIG:
-				payloadResume.modify_font(pango.FontDescription(FONT_DESCRIPTION_BIG))
+				payloadResume.modify_font(pango.FontDescription(self.FONT_DESCRIPTION_BIG))
 			else:
-				payloadResume.modify_font(pango.FontDescription(FONT_DESCRIPTION_MEDIUM))
+				payloadResume.modify_font(pango.FontDescription(self.FONT_DESCRIPTION_MEDIUM))
 
                 elif  jsonItem['type'] == 'image':
                 	payloadResume = gtk.Image()
                		payloadResume.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file(\
-                        	jsonItem['value']).scale_simple(IMAGES_SCALE[0], IMAGES_SCALE[1], 2) )
+                        	jsonItem['value']).scale_simple(self.IMAGES_SCALE[0], self.IMAGES_SCALE[1], 2) )
                         payloadResume.imageName = jsonItem['fileName']
                         payloadResume.imageType = jsonItem['fileType']
 			args = {"imageName": jsonItem['fileName'],"imageType": jsonItem['fileType']}

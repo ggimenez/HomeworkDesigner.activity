@@ -21,8 +21,8 @@ LETTERS_SCALE = [100, 100]
 
 EVENTBOX_SCALE = [100,100]
 
-FONT_DESCRIPTION_BIG = 'DejaVu Bold 40'
-FONT_DESCRIPTION_MEDIUM = 'DejaVu Bold 20'
+FONT_DESCRIPTION_BIG = 'DejaVu Bold 15'
+FONT_DESCRIPTION_MEDIUM = 'DejaVu Bold 8'
 
 MAXIMUM_LETTER_LENGTH_BIG = 8
 
@@ -159,9 +159,9 @@ class FindTheDifferentTemplate():
 			self.level = jsonState['level']
 		index = None
 		if self.level is 1:	
-			indexs = [0,1]
+			indexs = [0,1,2]
 		elif self.level is 2:
-			indexs = [0,1,2,3,4]
+			indexs = [0,1,2,3,4,5]
 
 		
 		for index in indexs:
