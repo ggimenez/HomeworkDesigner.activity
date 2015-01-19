@@ -439,7 +439,7 @@ class HomeWorkDesigner(activity.Activity):
 		activityInfoDataTranslate.append("[Activity]")
 		activityInfoDataTranslate.append("name = " + activityName)
 		
-		with open('./template.activity/locale/en/activity.info', 'w') as infofileTraduction:
+		with open('./template.activity/locale/en/activity.linfo', 'w') as infofileTraduction:
                                 infofileTraduction.truncate()
                                 for infoEntry in activityInfoDataTranslate:
                                                 infofileTraduction.write(infoEntry + "\n")
@@ -448,7 +448,7 @@ class HomeWorkDesigner(activity.Activity):
 		os.rename("./template.activity/locale/es/LC_MESSAGES/org.sugarlabs.Change.mo", ( 
 			"./template.activity/locale/es/LC_MESSAGES/org.sugarlabs." + activityNameSpacesLess + ".mo"))
 
-		with open('./template.activity/locale/es/activity.info', 'w') as infofileTraduction:
+		with open('./template.activity/locale/es/activity.linfo', 'w') as infofileTraduction:
                                 infofileTraduction.truncate()
                                 for infoEntry in activityInfoDataTranslate:
                                                 infofileTraduction.write(infoEntry + "\n")
@@ -477,7 +477,7 @@ class HomeWorkDesigner(activity.Activity):
 		self._alert_notify(_("Export as activity"), _("It has been exported successfully"))
 		
 		#delete the .xo created when is saved in the datastore
-		#os.remove(self.get_activity_root() + '/instance/' + activityNameSpacesLess + '.activity.xo')			
+		os.remove(self.get_activity_root() + '/instance/' + activityNameSpacesLess + '.activity.xo')			
 
 		self.getLogger().debug(theJson)
 		self.getLogger().debug(itemsToCopy)
