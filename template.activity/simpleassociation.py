@@ -40,8 +40,8 @@ EVENTBOX_SCALE = [100,100]
 '''Curren item selection association'''
 SELECTED_COLOUR = gtk.gdk.Color("#FFFF00")
 
-FONT_DESCRIPTION_BIG = 'DejaVu Bold 40'
-FONT_DESCRIPTION_MEDIUM = 'DejaVu Bold 20'
+FONT_DESCRIPTION_BIG = 'DejaVu Bold 30'
+FONT_DESCRIPTION_MEDIUM = 'DejaVu Bold 15'
 
 class SimpleAssociation():
 
@@ -80,7 +80,7 @@ class SimpleAssociation():
 		label.modify_font(pango.FontDescription("Sans 10"))
 		
 		vBoxWindows = gtk.VBox(False, 5)
-		hBoxExercises = gtk.HBox(True, 50)
+		hBoxExercises = gtk.HBox(False, 5)
 		self.vBoxOptions = gtk.VBox(False, 5)
 		self.vBoxOptions.set_border_width(10)
 		self.vBoxCorrespondences = gtk.VBox(False, 5)
@@ -165,8 +165,8 @@ class SimpleAssociation():
 			
 	        frameVBoxOptions.add(self.vBoxOptions)		
 		frameVBoxCorrespondences.add(self.vBoxCorrespondences)
-		hBoxExercises.pack_start(frameVBoxOptions, False,True,50)
-		hBoxExercises.pack_start(frameVBoxCorrespondences, False,True,50)
+		hBoxExercises.pack_start(frameVBoxOptions, True,True,5)
+		hBoxExercises.pack_start(frameVBoxCorrespondences, True,True,50)
 		vBoxWindows.pack_start(frameExercises, True,True,0)
 		
 		windowSimpleAssociation.add_with_viewport(vBoxWindows)
