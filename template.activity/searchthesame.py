@@ -15,22 +15,22 @@ import random
 Reference of colours codes :http://www.rapidtables.com/web/color/RGB_Color.htm
 '''
 COLOURS_ASSOCIATION = []
-#royal blue
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#4169E1"), "available":True, "id":0})
-#medium sea green
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#3CB371"), "available":True, "id":1})
-#teal
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#008080"), "available":True, "id":2})
-#sienna
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#A0522D"), "available":True, "id":3})
-#dark sea green
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#BA55D3"), "available":True, "id":4})
-#wheat
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#F5DEB3"), "available":True, "id":5})
-#chocolate
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#D2691E"), "available":True, "id":6})
-#Gray
-COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#808080"), "available":True, "id":7})
+
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#0074DF"), "available":True, "id":0})
+
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#FF1F68"), "available":True, "id":1})
+
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#D9E021"), "available":True, "id":2})
+
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#6FC72B"), "available":True, "id":3})
+
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#F1C001"), "available":True, "id":4})
+
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#F7931E"), "available":True, "id":5})
+
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#18B791"), "available":True, "id":6})
+
+COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#00CBFF"), "available":True, "id":7})
 
 
 

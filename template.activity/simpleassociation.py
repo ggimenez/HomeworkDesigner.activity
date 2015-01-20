@@ -23,16 +23,16 @@ LETTERS_SCALE = [100, 100]
 Reference of colours codes :http://www.rapidtables.com/web/color/RGB_Color.htm
 '''
 COLOURS_ASSOCIATION = []
-#royal blue
-COLOURS_ASSOCIATION.append({"colour":"#3CB371", "available":True})
-#orange
-COLOURS_ASSOCIATION.append({"colour":"#FFA500", "available":True})
-#teal
-COLOURS_ASSOCIATION.append({"colour":"#008080", "available":True})
-#thistle
-COLOURS_ASSOCIATION.append({"colour":"#F5DEB3", "available":True})
-#dark sea green
-COLOURS_ASSOCIATION.append({"colour":"#3CB371", "available":True})
+
+COLOURS_ASSOCIATION.append({"colour":"#0074DF", "available":True})
+
+COLOURS_ASSOCIATION.append({"colour":"#FF1F68", "available":True})
+
+COLOURS_ASSOCIATION.append({"colour":"#D9E021", "available":True})
+
+COLOURS_ASSOCIATION.append({"colour":"#6FC72B", "available":True})
+
+COLOURS_ASSOCIATION.append({"colour":"#F1C001", "available":True})
 
 EVENTBOX_SCALE = [100,100]
 
