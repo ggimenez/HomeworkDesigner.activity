@@ -19,21 +19,21 @@ from gettext import gettext as _
 Reference of colours codes :http://www.rapidtables.com/web/color/RGB_Color.htm
 '''
 COLOURS_ASSOCIATION = []
-#royal blue
+
 COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#0074DF"), "available":True})
-#medium sea green
+
 COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#FF1F68"), "available":True})
-#teal
+
 COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#D9E021"), "available":True})
-#sienna
+
 COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#6FC72B"), "available":True})
-#dark sea green
+
 COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#F1C001"), "available":True})
-#wheat
+
 COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#F7931E"), "available":True})
-#chocolate
+
 COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#18B791"), "available":True})
-#Gray
+
 COLOURS_ASSOCIATION.append({"colour":gtk.gdk.Color("#00CBFF"), "available":True})
 
 IMAGES_SCALE_LEVEL_1 = [150, 150]
