@@ -44,7 +44,8 @@ from simpleassociation import SimpleAssociation
 from findthedifferent import FindTheDifferent
 from searchthesame import SearchTheSame
 import os
-
+import datetime
+import time
 
 class ModalWindowDone:
 
@@ -110,19 +111,23 @@ class HomeWorkViewer(activity.Activity):
 	
 
 	def __init__(self, handle):
+		"""Set up the HelloWorld activity."""
+		activity.Activity.__init__(self, handle)
 
 		self._logger = logging.getLogger('home-work-viewer')
                 self._logger.setLevel(logging.DEBUG)
-		
+	
+		self._logger.debug("Inside to __init__ of HomeWorkViewer")	
+		ts = time.time()
+		self._logger.debug(ts)
+		#self._logger.debug( datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S'))
 
 		'''Obtenemos el JSON de la Actividad'''
 		json_data=open('json.txt')
 		self.activity = json.load(json_data, object_hook=lambda d: namedtuple('Activity', d.keys())(*d.values()))
 		json_data.close()
 
-		"""Set up the HelloWorld activity."""
-		activity.Activity.__init__(self, handle)
-
+		
 		# we do not have collaboration features
 		# make the share option insensitive
 		self.max_participants = 1
@@ -149,11 +154,13 @@ class HomeWorkViewer(activity.Activity):
 		self.buttonBefore.set_tooltip(_('Back'))
 		self.buttonBefore.connect("clicked", self.backButtonCallBack)
 		toolbar_box.toolbar.insert(self.buttonBefore, 2)
+		self.buttonBefore.show()
 
 		self.buttonNext = ToolButton('go-next')
 		self.buttonNext.set_tooltip(_('Next'))
 		self.buttonNext.connect("clicked", self.nextButtonCallBack)
 		toolbar_box.toolbar.insert(self.buttonNext, 3)
+		self.buttonNext.show()		
 
 		stop_button = StopButton(self)
 		toolbar_box.toolbar.insert(stop_button, -1)
@@ -163,22 +170,14 @@ class HomeWorkViewer(activity.Activity):
 		toolbar_box.show()
 
 		self.vBoxMain = gtk.VBox(True, 2)
+		self.vBoxMain.show()
 		self.set_canvas(self.vBoxMain)
-		self.show_all()
-	
-		self._logger.debug(self.metadata.keys())
-		self._logger.debug(self.metadata['activity_id'])	
-			
-		jsonState = None
-		activityName = self.metadata.get('title')		
-		if (self.metadata.get('custom_activity_id') is not None):		
-			with open(self.get_activity_root() + '/data/'  + \
-					  str(self.metadata['custom_activity_id']) + '/exerciseState.txt', 'r') as stateFile:
-				jsonState = json.load(stateFile)			
-			stateFile.close()
-		self.createWindowExercises(jsonState)
-			
-			
+		
+		self.jsonState = None
+		self.createWindowExercises()	
+		"""Leave this line always in the last"""
+		#self.show_all()
+		
 	def exerciseCompletedCallBack(self):
 		if self.amountExercises > self.exercisesMatches:
 			self.exercisesMatches = self.exercisesMatches + 1	
@@ -224,22 +223,25 @@ class HomeWorkViewer(activity.Activity):
                 self.manageBackNextButtons()
 
 	
-	def createWindowExercises(self, stateJson):
+	def createWindowExercises(self):
 		
-		self._logger.debug("inside to createNewWindowExercise")		
-             
+		self._logger.debug("inside to createWindowExercises")		
+		ts = time.time()	
+		self._logger.debug(ts)
 		self.amountExercises = len(self.activity.exercises)
 		self.currentIndexExercise = 0
 		self.exercisesMatches = 0		
-	
+
+		self.clearBox()	
                 index = 0
 		while index < self.amountExercises:
                         newExercise = None
                 	newWindowExercise = None
 			stateExercise = None
-			if stateJson is not None:
-				stateExercise = stateJson['exercises'][index]
-                	if self.activity.exercises[index].codeType  == 1:
+			if self.jsonState is not None:
+				stateExercise = self.jsonState['exercises'][index]
+                	
+			if self.activity.exercises[index].codeType  == 1:
                         	newExercise = SimpleAssociation()
                         	newWindowExercise = newExercise.getWindow(self.activity.exercises[index], self, stateExercise)  
                 	elif self.activity.exercises[index].codeType  == 2:
@@ -249,28 +251,43 @@ class HomeWorkViewer(activity.Activity):
                         	newExercise = SearchTheSame()
                         	newWindowExercise = newExercise.getWindow(self.activity.exercises[index] ,self, stateExercise)
 
-			newWindowExercise.hide()
+			#newWindowExercise.hide()
                 	self.vBoxMain.pack_start(newWindowExercise, True, True, 0)
                		index = index + 1
-		if stateJson is None:
-			self.vBoxMain.get_children()[self.currentIndexExercise].show_all()		
+		if self.jsonState is None:
+			self.vBoxMain.get_children()[self.currentIndexExercise].show_all()
+			self.getLogger().debug("Inside to if: self.jsonState is None")		
 		else:
-			self.exercisesMatches = stateJson['exercisesMatches']
-			self.moveToExerciseIndex(stateJson['currentIndexExercise'])
+			self.exercisesMatches = self.jsonState['exercisesMatches']
+			self.moveToExerciseIndex(self.jsonState['currentIndexExercise'])
 		self.manageBackNextButtons()		
 
+	def clearBox(self):
+		allExercisesWindows = self.vBoxMain.get_children()
+		for exerciseWindow in allExercisesWindows:
+			exerciseWindow.hide()
+			self.vBoxMain.remove(exerciseWindow)
+
 	def read_file(self, tmp_file):
-		pass
-		
+		self.getLogger().debug("Inside to read_file()")
+		ts = time.time()
+		self._logger.debug(ts)	
+		with open(tmp_file, 'r') as stateFile:
+                	fileJsonState = json.load(stateFile)
+			if fileJsonState is not None:
+				self.jsonState = fileJsonState                        
+		stateFile.close()
+		self.createWindowExercises()
+				
 	def write_file(self, tmp_file):
 		self.getLogger().debug("Inside to write_file")
-                self.saveActivityState()
+                self.saveActivityState(tmp_file)
                 
 		
 	def getLogger(self):
                 return self._logger
 	
-	def saveActivityState(self):
+	def saveActivityState(self, filePath):
                 self.getLogger().debug("inside to saveActivityState")
                 allExerciseWindows = self.vBoxMain.get_children()
                 theJson = {}
@@ -282,28 +299,21 @@ class HomeWorkViewer(activity.Activity):
                 activityName = self.metadata.get('title')
                 
 		metadataKeys = self.metadata.keys()
-		self.getLogger().debug(metadataKeys)
-		for key in metadataKeys:
-			self.getLogger().debug(key)
-			self.getLogger().debug(self.metadata.get(key))
+		#self.getLogger().debug(metadataKeys)
+		#for key in metadataKeys:
+			#self.getLogger().debug(key)
+			#self.getLogger().debug(self.metadata.get(key))
 
 		for index, exerciseWindow in enumerate( allExerciseWindows ):
                                 exerciseJson = exerciseWindow.exerciseInstance.saveExerciseState()
                                 theJson['exercises'].append(exerciseJson)
 
 
-		'''if not os.path.exists(self.get_activity_root() + '/data/' + activityName):
-                        os.makedirs(self.get_activity_root() + '/data/' + activityName)'''
-
-		if self.metadata.get('custom_activity_id') is None:
-			self.metadata['custom_activity_id'] = len(os.walk(self.get_activity_root() + '/data').next()[1]) + 1	
-			if not os.path.exists(self.get_activity_root() + '/data/' + str(self.metadata['custom_activity_id'])):
-                        	os.makedirs( self.get_activity_root() + '/data/' + str(self.metadata['custom_activity_id']))	
-	
-                self.getLogger().debug(theJson)
-                with open( self.get_activity_root() + '/data/' + str(self.metadata['custom_activity_id'])  + '/exerciseState.txt', 'w+') as stateFile:
+		self.getLogger().debug(theJson)
+                with open( filePath, 'w+') as stateFile:
 			json.dump(theJson,stateFile )
 		stateFile.close()
+
 
 	def freezeExerciseWindow(self):
 		currentWindowsExercise = self.vBoxMain.get_children()[self.currentIndexExercise] 
