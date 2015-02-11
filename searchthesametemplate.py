@@ -15,6 +15,9 @@ from modalwindowselectItem import ModalWindowSelectItem
 
 from gettext import gettext as _
 
+from itertools import product
+
+
 '''Color Selection association
 Reference of colours codes :http://www.rapidtables.com/web/color/RGB_Color.htm
 '''
@@ -106,6 +109,30 @@ class SearchTheSameTemplate():
 			eventBox.add(letterLabel)
 			eventBox.show_all()
 	
+	def validNeighborhood(self, row, column, rowMap, columnMap, matches, matchesToDo):
+		response = True
+		if (matchesToDo - 1) is not matches:		
+			if (column - 1) == columnMap and (row == rowMap):
+				response = False
+
+			if (column + 1) == columnMap and (row == rowMap):
+				response = False
+
+			if (row - 1) == rowMap and (column == columnMap):
+				response = False	
+
+			if (row + 1) == rowMap and (column == columnMap): 
+				response = False
+		
+		if (row == rowMap) and (column == columnMap):
+			response = False
+
+		#self.mainWindows.getLogger().debug(response)
+		#self.mainWindows.getLogger().debug(matches)
+		#self.mainWindows.getLogger().debug(matchesToDo)
+		return response
+
+
 	def givemeMapTable(self, rows, columns):
 		theMatrix = [[None] * columns for i in range(rows)]
 		
@@ -124,17 +151,38 @@ class SearchTheSameTemplate():
 				#self.mainWindows.getLogger().debug("column: %s" % column)
 				isFoundMap = False				
 				
-				self.mainWindows.getLogger().debug(theMatrix)
-				if theMatrix[row][column] == None :				
+				#self.mainWindows.getLogger().debug(theMatrix)
+				if theMatrix[row][column] == None :
+					#self.mainWindows.getLogger().debug(range(rows))				
+					#self.mainWindows.getLogger().debug(range(columns))	
+					combinationsList = list(product(*[range(rows), range(columns)]))
+					itemsSelected = []
+					#self.mainWindows.getLogger().debug("combinationsList: ")
+					#self.mainWindows.getLogger().debug(combinationsList)
+					#self.mainWindows.getLogger().debug("theMatrix:")
+					#self.mainWindows.getLogger().debug(theMatrix)
+
 					while (isFoundMap is False):
-						rowMap = random.randint(0, (rows - 1))
-						columnMap = random.randint(0,(columns - 1))					
-						
-						if (rowMap != row or columnMap != column) and theMatrix[rowMap][columnMap] is None:
+						itemChoice = random.choice(combinationsList)	
+						rowMap = itemChoice[0] 
+						columnMap = itemChoice[1]					
+								
+						if (  (itemChoice not in itemsSelected) 
+								and self.validNeighborhood(row, column, rowMap, columnMap, currentItemIndex, len(itemIndex)) 
+								and theMatrix[rowMap][columnMap] is None ):
+
+
 							theMatrix[row][column] = [rowMap,columnMap, itemIndex[currentItemIndex]]			
 							theMatrix[rowMap][columnMap] = [row,column, itemIndex[currentItemIndex]]
 							currentItemIndex = currentItemIndex + 1
 							isFoundMap = True
+						
+						if itemChoice not in itemsSelected:
+							itemsSelected.append(itemChoice)
+						#self.mainWindows.getLogger().debug("itemsSelected:")
+						#self.mainWindows.getLogger().debug(itemsSelected)
+
+						
 				column = column + 1
 			row = row + 1
 		self.mainWindows.getLogger().debug(theMatrix)
